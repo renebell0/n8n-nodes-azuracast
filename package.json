@@ -1,0 +1,86 @@
+{
+	"name": "n8n-nodes-azuracast",
+	"version": "0.1.0",
+	"description": "n8n community node for AzuraCast Web API",
+	"license": "Apache-2.0",
+	"homepage": "https://github.com/renebell0/n8n-nodes-azuracast",
+	"keywords": [
+		"n8n-community-node-package",
+		"n8n",
+		"azuracast",
+		"radio",
+		"broadcasting",
+		"n8n-community",
+		"n8n-node",
+		"workflow-automation",
+		"community-node",
+		"self-hosted-radio",
+		"internet-radio",
+		"webradio",
+		"streaming",
+		"audio-streaming",
+		"media-automation",
+		"station-management",
+		"playlist-management",
+		"api-integration",
+		"rest-api",
+		"now-playing",
+		"broadcast-automation",
+		"radio-automation",
+		"openapi",
+		"typescript",
+		"webhooks"
+	],
+	"author": {
+		"name": "renebell0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/renebell0/n8n-nodes-azuracast.git"
+	},
+	"scripts": {
+		"build": "n8n-node build",
+		"build:watch": "tsc --watch",
+		"dev": "n8n-node dev",
+		"generate:operations": "node scripts/generate-operations.mjs",
+		"lint": "n8n-node lint",
+		"lint:fix": "n8n-node lint --fix",
+		"pack:check": "npm pack --dry-run",
+		"publish:dry-run": "npm publish --dry-run --ignore-scripts",
+		"simulate:local": "node scripts/simulate-local.mjs",
+		"verify:operations": "node scripts/verify-operations.mjs",
+		"validate:publish": "npm run lint && npm run build && npm run verify:operations && npm run simulate:local && npm run pack:check && npm run publish:dry-run",
+		"release": "n8n-node release",
+		"release:publish": "n8n-node release --publish",
+		"prepublishOnly": "n8n-node prerelease"
+	},
+	"main": "dist/index.js",
+	"files": [
+		"dist",
+		"CHANGELOG.md"
+	],
+	"publishConfig": {
+		"access": "public"
+	},
+	"n8n": {
+		"n8nNodesApiVersion": 1,
+		"strict": false,
+		"credentials": [
+			"dist/credentials/AzuraCastApi.credentials.js"
+		],
+		"nodes": [
+			"dist/nodes/AzuraCast/AzuraCast.node.js"
+		]
+	},
+	"devDependencies": {
+		"@n8n/node-cli": "^0.23.0",
+		"eslint": "9.32.0",
+		"prettier": "3.6.2",
+		"release-it": "^19.0.4",
+		"typescript": "5.9.2",
+		"yaml": "^2.8.1"
+	},
+	"peerDependencies": {
+		"n8n-workflow": "*"
+	}
+}
