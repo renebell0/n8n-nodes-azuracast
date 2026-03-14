@@ -7,7 +7,7 @@
 
 ![n8n-nodes-azuracast](https://raw.githubusercontent.com/renebell0/assets/e1d64715e74d5a5dd3e694aca3cf019c761f7742/readme-images/n8n-nodes-azuracast.jpg)
 
-`n8n-nodes-azuracast` is an n8n community node that connects AzuraCast with n8n workflows through the official AzuraCast Web API.
+`@renebello/n8n-nodes-azuracast` is an n8n community node that connects AzuraCast with n8n workflows through the official AzuraCast Web API.
 
 [AzuraCast](https://www.azuracast.com/) is a self-hosted web radio platform for stations, media, playlists, requests, webhooks, reports, and admin operations. [n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/reference/license/) workflow automation platform.
 
@@ -29,7 +29,7 @@ Follow the official [n8n community node installation guide](https://docs.n8n.io/
 Package name:
 
 ```bash
-n8n-nodes-azuracast
+@renebello/n8n-nodes-azuracast
 ```
 
 ## Operations

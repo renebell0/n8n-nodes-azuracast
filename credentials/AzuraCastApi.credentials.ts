@@ -8,7 +8,7 @@ import type {
 } from 'n8n-workflow';
 
 export class AzuraCastApi implements ICredentialType {
-	name = 'azuraCastApi';
+	name = 'renebelloAzuraCastApi';
 
 	displayName = 'AzuraCast API';
 

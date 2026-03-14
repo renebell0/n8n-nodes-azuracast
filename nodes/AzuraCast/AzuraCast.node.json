@@ -1,5 +1,5 @@
 {
-	"node": "n8n-nodes-azuracast.azuraCast",
+	"node": "@renebello/n8n-nodes-azuracast.azuraCast",
 	"nodeVersion": "1.0",
 	"codexVersion": "1.0",
 	"categories": ["Development", "Productivity"],

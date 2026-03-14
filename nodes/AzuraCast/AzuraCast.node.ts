@@ -398,7 +398,7 @@ export class AzuraCast implements INodeType {
 		outputs: [NodeConnectionTypes.Main],
 		credentials: [
 			{
-				name: 'azuraCastApi',
+				name: 'renebelloAzuraCastApi',
 				required: true,
 			},
 		],
@@ -419,7 +419,7 @@ export class AzuraCast implements INodeType {
 					});
 				}
 
-				const credentialData = await this.getCredentials('azuraCastApi');
+				const credentialData = await this.getCredentials('renebelloAzuraCastApi');
 				const credentialBaseUrl = String(credentialData?.baseUrl ?? '');
 				const apiBaseUrl = getBaseUrlForItem(this.getNode(), credentialBaseUrl, i);
 
@@ -513,11 +513,11 @@ export class AzuraCast implements INodeType {
 					requestOptions.json = false;
 				}
 
-				const responseData = await this.helpers.httpRequestWithAuthentication.call(
-					this,
-					'azuraCastApi',
-					requestOptions,
-				);
+					const responseData = await this.helpers.httpRequestWithAuthentication.call(
+						this,
+						'renebelloAzuraCastApi',
+						requestOptions,
+					);
 
 				if (returnFullResponse) {
 					if (responseFormat === 'binary') {
