@@ -1,0 +1,513 @@
+{
+	"generatedAt": "2026-03-14T19:07:10.944Z",
+	"domainCount": 27,
+	"operationCount": 263,
+	"domains": [
+		{
+			"tag": "Administration: Backups",
+			"className": "AzuraCastAdministrationBackups",
+			"nodeName": "azuraCastAdministrationBackups",
+			"displayName": "AzuraCast Administration Backups",
+			"operationCount": 5,
+			"operationIds": [
+				"adminBackupsViewLog",
+				"deleteBackup",
+				"downloadBackup",
+				"getBackups",
+				"postAdminDoBackup"
+			]
+		},
+		{
+			"tag": "Administration: Custom Fields",
+			"className": "AzuraCastAdministrationCustomFields",
+			"nodeName": "azuraCastAdministrationCustomFields",
+			"displayName": "AzuraCast Administration Custom Fields",
+			"operationCount": 5,
+			"operationIds": [
+				"addCustomField",
+				"deleteCustomField",
+				"editCustomField",
+				"getCustomField",
+				"getCustomFields"
+			]
+		},
+		{
+			"tag": "Administration: Debugging",
+			"className": "AzuraCastAdministrationDebugging",
+			"nodeName": "azuraCastAdministrationDebugging",
+			"displayName": "AzuraCast Administration Debugging",
+			"operationCount": 10,
+			"operationIds": [
+				"adminDebugClearCache",
+				"adminDebugClearQueue",
+				"adminDebugClearStationQueue",
+				"adminDebugRunSyncTask",
+				"adminDebugStationNextSong",
+				"adminDebugStationNowPlaying",
+				"getAdminDebugQueues",
+				"getAdminDebugStations",
+				"getAdminDebugSyncTasks",
+				"putAdminDebugTelnetCommand"
+			]
+		},
+		{
+			"tag": "Administration: General",
+			"className": "AzuraCastAdministrationGeneral",
+			"nodeName": "azuraCastAdministrationGeneral",
+			"displayName": "AzuraCast Administration General",
+			"operationCount": 32,
+			"operationIds": [
+				"adminAcmeViewLog",
+				"adminCreateApiKey",
+				"adminDeleteApiKey",
+				"adminGetRelays",
+				"adminListApiKeys",
+				"adminListLogs",
+				"adminSendTestEmail",
+				"adminViewLog",
+				"deleteAdminCustomAsset",
+				"deleteRsas",
+				"deleteRsasLicense",
+				"deleteShoutcast",
+				"deleteStereoTool",
+				"getAdminCustomAsset",
+				"getAuditlog",
+				"getGeoLite",
+				"getRsas",
+				"getServerStats",
+				"getServiceDetails",
+				"getShoutcast",
+				"getStereoTool",
+				"getUpdateStatus",
+				"internalGetRelayDetails",
+				"postAdminCustomAsset",
+				"postGeoLite",
+				"postRsas",
+				"postRsasLicense",
+				"postShoutcast",
+				"postStereoTool",
+				"putAdminGenerateAcmeCert",
+				"putWebUpdate",
+				"restartService"
+			]
+		},
+		{
+			"tag": "Administration: Roles",
+			"className": "AzuraCastAdministrationRoles",
+			"nodeName": "azuraCastAdministrationRoles",
+			"displayName": "AzuraCast Administration Roles",
+			"operationCount": 6,
+			"operationIds": [
+				"addRole",
+				"deleteRole",
+				"editRole",
+				"getPermissions",
+				"getRole",
+				"getRoles"
+			]
+		},
+		{
+			"tag": "Administration: Settings",
+			"className": "AzuraCastAdministrationSettings",
+			"nodeName": "azuraCastAdministrationSettings",
+			"displayName": "AzuraCast Administration Settings",
+			"operationCount": 2,
+			"operationIds": [
+				"editSettings",
+				"getSettings"
+			]
+		},
+		{
+			"tag": "Administration: Stations",
+			"className": "AzuraCastAdministrationStations",
+			"nodeName": "azuraCastAdministrationStations",
+			"displayName": "AzuraCast Administration Stations",
+			"operationCount": 7,
+			"operationIds": [
+				"adminAddStation",
+				"adminDeleteStation",
+				"adminEditStation",
+				"adminGetStation",
+				"adminGetStations",
+				"getAdminStationStorageLocations",
+				"postAdminStationsClone"
+			]
+		},
+		{
+			"tag": "Administration: Storage Locations",
+			"className": "AzuraCastAdministrationStorageLocations",
+			"nodeName": "azuraCastAdministrationStorageLocations",
+			"displayName": "AzuraCast Administration Storage Locations",
+			"operationCount": 5,
+			"operationIds": [
+				"addStorageLocation",
+				"deleteStorageLocation",
+				"editStorageLocation",
+				"getStorageLocation",
+				"getStorageLocations"
+			]
+		},
+		{
+			"tag": "Administration: Users",
+			"className": "AzuraCastAdministrationUsers",
+			"nodeName": "azuraCastAdministrationUsers",
+			"displayName": "AzuraCast Administration Users",
+			"operationCount": 9,
+			"operationIds": [
+				"addLoginToken",
+				"addUser",
+				"deleteLoginToken",
+				"deleteUser",
+				"editUser",
+				"getLoginToken",
+				"getLoginTokens",
+				"getUser",
+				"getUsers"
+			]
+		},
+		{
+			"tag": "Miscellaneous",
+			"className": "AzuraCastMiscellaneous",
+			"nodeName": "azuraCastMiscellaneous",
+			"displayName": "AzuraCast Miscellaneous",
+			"operationCount": 4,
+			"operationIds": [
+				"getDashboardCharts",
+				"getDashboardStations",
+				"getNotifications",
+				"getPrometheus"
+			]
+		},
+		{
+			"tag": "My Account",
+			"className": "AzuraCastMyAccount",
+			"nodeName": "azuraCastMyAccount",
+			"displayName": "AzuraCast My Account",
+			"operationCount": 15,
+			"operationIds": [
+				"addMyApiKey",
+				"changeMyPassword",
+				"deleteAccountPasskey",
+				"deleteMyApiKey",
+				"deleteMyTwoFactor",
+				"getAccountGetPasskey",
+				"getAccountListPasskeys",
+				"getAccountWebAuthnRegister",
+				"getMe",
+				"getMyApiKey",
+				"getMyApiKeys",
+				"getMyTwoFactor",
+				"putAccountTwoFactor",
+				"putAccountWebAuthnRegister",
+				"putMe"
+			]
+		},
+		{
+			"tag": "Public: Miscellaneous",
+			"className": "AzuraCastPublicMiscellaneous",
+			"nodeName": "azuraCastPublicMiscellaneous",
+			"displayName": "AzuraCast Public Miscellaneous",
+			"operationCount": 3,
+			"operationIds": [
+				"getOpenApiSpec",
+				"getStatus",
+				"getTime"
+			]
+		},
+		{
+			"tag": "Public: Now Playing",
+			"className": "AzuraCastPublicNowPlaying",
+			"nodeName": "azuraCastPublicNowPlaying",
+			"displayName": "AzuraCast Public Now Playing",
+			"operationCount": 3,
+			"operationIds": [
+				"getAllNowPlaying",
+				"getStationNowPlaying",
+				"getStationNowPlayingArt"
+			]
+		},
+		{
+			"tag": "Public: Stations",
+			"className": "AzuraCastPublicStations",
+			"nodeName": "azuraCastPublicStations",
+			"displayName": "AzuraCast Public Stations",
+			"operationCount": 16,
+			"operationIds": [
+				"getMediaArt",
+				"getPodcastArt",
+				"getPodcastEpisodeArt",
+				"getPodcastEpisodeMedia",
+				"getRequestableSongs",
+				"getSchedule",
+				"getStation",
+				"getStationOnDemand",
+				"getStationOnDemandDownload",
+				"getStationPublicPodcast",
+				"getStationPublicPodcastEpisode",
+				"getStationPublicPodcastEpisodes",
+				"getStationPublicPodcasts",
+				"getStations",
+				"getStreamerArt",
+				"submitSongRequest"
+			]
+		},
+		{
+			"tag": "Stations: Broadcasting",
+			"className": "AzuraCastStationsBroadcasting",
+			"nodeName": "azuraCastStationsBroadcasting",
+			"displayName": "AzuraCast Stations Broadcasting",
+			"operationCount": 11,
+			"operationIds": [
+				"deleteStereoToolConfiguration",
+				"doBackendServiceAction",
+				"doFrontendServiceAction",
+				"exportStationLiquidsoapConfig",
+				"getServiceStatus",
+				"getStationLiquidsoapConfig",
+				"getStereoToolConfiguration",
+				"importStationLiquidsoapConfig",
+				"postStereoToolConfiguration",
+				"putStationLiquidsoapConfig",
+				"restartServices"
+			]
+		},
+		{
+			"tag": "Stations: General",
+			"className": "AzuraCastStationsGeneral",
+			"nodeName": "azuraCastStationsGeneral",
+			"displayName": "AzuraCast Stations General",
+			"operationCount": 14,
+			"operationIds": [
+				"deleteStationCustomAsset",
+				"deleteStationFallback",
+				"getQuota",
+				"getQuotaOfType",
+				"getStationCustomAsset",
+				"getStationFallback",
+				"getStationLog",
+				"getStationLogs",
+				"getStationProfile",
+				"getStationProfileEdit",
+				"postStationCustomAsset",
+				"postStationFallback",
+				"postStationNowPlayingUpdate",
+				"putStationProfileEdit"
+			]
+		},
+		{
+			"tag": "Stations: HLS Streams",
+			"className": "AzuraCastStationsHlsStreams",
+			"nodeName": "azuraCastStationsHlsStreams",
+			"displayName": "AzuraCast Stations HLS Streams",
+			"operationCount": 5,
+			"operationIds": [
+				"addHlsStream",
+				"deleteHlsStream",
+				"editHlsStream",
+				"getHlsStream",
+				"getHlsStreams"
+			]
+		},
+		{
+			"tag": "Stations: Media",
+			"className": "AzuraCastStationsMedia",
+			"nodeName": "azuraCastStationsMedia",
+			"displayName": "AzuraCast Stations Media",
+			"operationCount": 21,
+			"operationIds": [
+				"addFile",
+				"deleteFile",
+				"deleteMediaArt",
+				"editFile",
+				"getFile",
+				"getFiles",
+				"getPlayFile",
+				"getPlayFileSongId",
+				"getStationBulkMediaDownload",
+				"getStationFileDirectories",
+				"getStationFileDownload",
+				"getStationFileList",
+				"getStationMediaWaveform",
+				"postMediaArt",
+				"postStationBulkMediaPreview",
+				"postStationBulkMediaUpload",
+				"postStationFilesMkdir",
+				"postStationFilesRename",
+				"postStationMediaWaveform",
+				"postUploadFile",
+				"putStationFileBatchAction"
+			]
+		},
+		{
+			"tag": "Stations: Mount Points",
+			"className": "AzuraCastStationsMountPoints",
+			"nodeName": "azuraCastStationsMountPoints",
+			"displayName": "AzuraCast Stations Mount Points",
+			"operationCount": 8,
+			"operationIds": [
+				"addMount",
+				"deleteMount",
+				"deleteMountIntro",
+				"editMount",
+				"getMount",
+				"getMountIntro",
+				"getStationMounts",
+				"postMountIntro"
+			]
+		},
+		{
+			"tag": "Stations: Playlists",
+			"className": "AzuraCastStationsPlaylists",
+			"nodeName": "azuraCastStationsPlaylists",
+			"displayName": "AzuraCast Stations Playlists",
+			"operationCount": 18,
+			"operationIds": [
+				"addPlaylist",
+				"deleteEmptyPlaylist",
+				"deletePlaylist",
+				"deletePlaylistQueue",
+				"editPlaylist",
+				"getExportPlaylist",
+				"getPlaylist",
+				"getPlaylists",
+				"getStationPlaylistApplyTo",
+				"getStationPlaylistOrder",
+				"getStationPlaylistQueue",
+				"postStationPlaylistClone",
+				"postStationPlaylistImport",
+				"postStationPodcastBatch",
+				"putReshufflePlaylist",
+				"putStationPlaylistApplyTo",
+				"putStationPlaylistOrder",
+				"putTogglePlaylist"
+			]
+		},
+		{
+			"tag": "Stations: Podcasts",
+			"className": "AzuraCastStationsPodcasts",
+			"nodeName": "azuraCastStationsPodcasts",
+			"displayName": "AzuraCast Stations Podcasts",
+			"operationCount": 17,
+			"operationIds": [
+				"addEpisode",
+				"addPodcast",
+				"deleteEpisode",
+				"deletePodcast",
+				"deletePodcastArt",
+				"deletePodcastEpisodeArt",
+				"deletePodcastEpisodeMedia",
+				"editEpisode",
+				"editPodcast",
+				"getEpisode",
+				"getEpisodes",
+				"getPodcast",
+				"getPodcasts",
+				"getStationPodcastPlaylists",
+				"postPodcastArt",
+				"postPodcastEpisodeArt",
+				"postPodcastEpisodeMedia"
+			]
+		},
+		{
+			"tag": "Stations: Queue",
+			"className": "AzuraCastStationsQueue",
+			"nodeName": "azuraCastStationsQueue",
+			"displayName": "AzuraCast Stations Queue",
+			"operationCount": 3,
+			"operationIds": [
+				"deleteQueueItem",
+				"getQueue",
+				"getQueueItem"
+			]
+		},
+		{
+			"tag": "Stations: Remote Relays",
+			"className": "AzuraCastStationsRemoteRelays",
+			"nodeName": "azuraCastStationsRemoteRelays",
+			"displayName": "AzuraCast Stations Remote Relays",
+			"operationCount": 5,
+			"operationIds": [
+				"addRelay",
+				"deleteRelay",
+				"editRelay",
+				"getRelay",
+				"getRelays"
+			]
+		},
+		{
+			"tag": "Stations: Reports",
+			"className": "AzuraCastStationsReports",
+			"nodeName": "azuraCastStationsReports",
+			"displayName": "AzuraCast Stations Reports",
+			"operationCount": 13,
+			"operationIds": [
+				"deleteStationRequest",
+				"getStationHistory",
+				"getStationListeners",
+				"getStationReportBestAndWorst",
+				"getStationReportByBrowser",
+				"getStationReportByClient",
+				"getStationReportByCountry",
+				"getStationReportByListeningTime",
+				"getStationReportByStream",
+				"getStationReportCharts",
+				"getStationRequestsReport",
+				"getStationSoundExchangeReport",
+				"postStationRequestsClear"
+			]
+		},
+		{
+			"tag": "Stations: SFTP Users",
+			"className": "AzuraCastStationsSftpUsers",
+			"nodeName": "azuraCastStationsSftpUsers",
+			"displayName": "AzuraCast Stations SFTP Users",
+			"operationCount": 5,
+			"operationIds": [
+				"addSftpUser",
+				"deleteSftpUser",
+				"editSftpUser",
+				"getSftpUser",
+				"getSftpUsers"
+			]
+		},
+		{
+			"tag": "Stations: Streamers/DJs",
+			"className": "AzuraCastStationsStreamersDjs",
+			"nodeName": "azuraCastStationsStreamersDjs",
+			"displayName": "AzuraCast Stations Streamers DJs",
+			"operationCount": 12,
+			"operationIds": [
+				"addStreamer",
+				"deleteStreamer",
+				"deleteStreamerArt",
+				"editStreamer",
+				"getStationAllBroadcasts",
+				"getStationStreamerBroadcasts",
+				"getStationStreamerDeleteBroadcast",
+				"getStationStreamerDownloadBroadcast",
+				"getStreamer",
+				"getStreamers",
+				"postStationStreamerBroadcastsBatch",
+				"postStreamerArt"
+			]
+		},
+		{
+			"tag": "Stations: Web Hooks",
+			"className": "AzuraCastStationsWebHooks",
+			"nodeName": "azuraCastStationsWebHooks",
+			"displayName": "AzuraCast Stations Web Hooks",
+			"operationCount": 9,
+			"operationIds": [
+				"addWebhook",
+				"cloneWebhook",
+				"deleteWebhook",
+				"editWebhook",
+				"getWebhook",
+				"getWebhooks",
+				"getWebhookTestLog",
+				"putStationWebhookTest",
+				"putStationWebhookToggle"
+			]
+		}
+	]
+}

@@ -6,6 +6,9 @@ import YAML from 'yaml';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const snapshotPath = path.join(projectRoot, 'nodes', 'AzuraCast', 'azuracast.openapi.snapshot.json');
+const domainsPath = path.join(projectRoot, 'nodes', 'AzuraCast', 'azuracast.domains.json');
+const packageJsonPath = path.join(projectRoot, 'package.json');
+const nodesDir = path.join(projectRoot, 'nodes', 'AzuraCast');
 
 const openApiUrl =
 	process.env.AZURACAST_OPENAPI_URL ??
@@ -61,6 +64,7 @@ function extractOperationMap(document) {
 			operationMap[operationId] = {
 				method: method.toUpperCase(),
 				path: routePath,
+				tag: normalizeText(Array.isArray(resolvedOperation?.tags) ? resolvedOperation.tags[0] : '') || 'General',
 				isPublic:
 					Array.isArray(resolvedOperation?.security) && resolvedOperation.security.length === 0,
 			};
@@ -84,15 +88,44 @@ async function loadOpenApiDocument(url) {
 	return YAML.parse(await response.text());
 }
 
+function expectedOperationIdsByTag(snapshot) {
+	const tagMap = {};
+	for (const operation of snapshot.operations ?? []) {
+		const tag = String(operation.tag ?? 'General');
+		tagMap[tag] = tagMap[tag] ?? [];
+		tagMap[tag].push(String(operation.id ?? '').trim());
+	}
+	for (const [tag, operationIds] of Object.entries(tagMap)) {
+		tagMap[tag] = [...new Set(operationIds.filter((id) => id.length > 0))].sort((a, b) =>
+			a.localeCompare(b),
+		);
+	}
+	return tagMap;
+}
+
+async function fileExists(filePath) {
+	try {
+		await fs.access(filePath);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
 async function main() {
 	const snapshotRaw = await fs.readFile(snapshotPath, 'utf8');
 	const snapshot = JSON.parse(snapshotRaw);
+	const domainsRaw = await fs.readFile(domainsPath, 'utf8');
+	const domainsManifest = JSON.parse(domainsRaw);
+	const packageJson = JSON.parse(await fs.readFile(packageJsonPath, 'utf8'));
+
 	const snapshotOperationMap = Object.fromEntries(
 		Object.entries(snapshot.operationMap ?? {}).map(([id, operation]) => [
 			id,
 			{
 				method: String(operation.method ?? '').toUpperCase(),
 				path: String(operation.path ?? ''),
+				tag: String(operation.tag ?? ''),
 				isPublic: Boolean(operation.isPublic),
 			},
 		]),
@@ -113,6 +146,7 @@ async function main() {
 			return (
 				snapshotOperation.method !== officialOperation.method ||
 				snapshotOperation.path !== officialOperation.path ||
+				snapshotOperation.tag !== officialOperation.tag ||
 				snapshotOperation.isPublic !== officialOperation.isPublic
 			);
 		})
@@ -120,11 +154,101 @@ async function main() {
 			const snapshotOperation = snapshotOperationMap[id];
 			const officialOperation = officialOperationMap[id];
 			return `${id}
-  snapshot: ${snapshotOperation.method} ${snapshotOperation.path} public=${snapshotOperation.isPublic}
-  official: ${officialOperation.method} ${officialOperation.path} public=${officialOperation.isPublic}`;
+  snapshot: ${snapshotOperation.method} ${snapshotOperation.path} tag=${snapshotOperation.tag} public=${snapshotOperation.isPublic}
+  official: ${officialOperation.method} ${officialOperation.path} tag=${officialOperation.tag} public=${officialOperation.isPublic}`;
 		});
 
-	if (duplicateOperationIds.length || missing.length || extra.length || drift.length) {
+	const domains = Array.isArray(domainsManifest.domains) ? domainsManifest.domains : [];
+	const expectedByTag = expectedOperationIdsByTag(snapshot);
+	const expectedTags = Object.keys(expectedByTag).sort((a, b) => a.localeCompare(b));
+	const domainTags = domains.map((domain) => String(domain.tag ?? '')).sort((a, b) => a.localeCompare(b));
+	const missingDomainTags = expectedTags.filter((tag) => !domainTags.includes(tag));
+	const extraDomainTags = domainTags.filter((tag) => !expectedTags.includes(tag));
+
+	const domainCoverageMissing = [];
+	const domainCoverageExtra = [];
+	for (const domain of domains) {
+		const tag = String(domain.tag ?? '');
+		const operationIds = [...new Set((domain.operationIds ?? []).map((id) => String(id ?? '').trim()))]
+			.filter((id) => id.length > 0)
+			.sort((a, b) => a.localeCompare(b));
+		const expectedIds = expectedByTag[tag] ?? [];
+		const missingIds = expectedIds.filter((id) => !operationIds.includes(id));
+		const extraIds = operationIds.filter((id) => !expectedIds.includes(id));
+		if (missingIds.length > 0) {
+			domainCoverageMissing.push(`${tag}: ${missingIds.join(', ')}`);
+		}
+		if (extraIds.length > 0) {
+			domainCoverageExtra.push(`${tag}: ${extraIds.join(', ')}`);
+		}
+	}
+
+	const duplicateDomainAssignments = [];
+	const domainOperationOwner = new Map();
+	for (const domain of domains) {
+		const tag = String(domain.tag ?? '');
+		for (const operationIdRaw of domain.operationIds ?? []) {
+			const operationId = String(operationIdRaw ?? '').trim();
+			if (!operationId) {
+				continue;
+			}
+			if (domainOperationOwner.has(operationId)) {
+				duplicateDomainAssignments.push(
+					`${operationId}: ${domainOperationOwner.get(operationId)} and ${tag}`,
+				);
+				continue;
+			}
+			domainOperationOwner.set(operationId, tag);
+		}
+	}
+
+	const missingInDomainManifest = officialOperationIds.filter((id) => !domainOperationOwner.has(id));
+	const extraInDomainManifest = [...domainOperationOwner.keys()].filter(
+		(id) => !officialOperationIds.includes(id),
+	);
+
+	const missingDomainFiles = [];
+	for (const domain of domains) {
+		const className = String(domain.className ?? '').trim();
+		if (!className) {
+			continue;
+		}
+		const nodeTsPath = path.join(nodesDir, `${className}.node.ts`);
+		const nodeJsonPath = path.join(nodesDir, `${className}.node.json`);
+		if (!(await fileExists(nodeTsPath))) {
+			missingDomainFiles.push(path.relative(projectRoot, nodeTsPath));
+		}
+		if (!(await fileExists(nodeJsonPath))) {
+			missingDomainFiles.push(path.relative(projectRoot, nodeJsonPath));
+		}
+	}
+
+	const expectedNodePaths = domains
+		.map((domain) => `dist/nodes/AzuraCast/${String(domain.className ?? '').trim()}.node.js`)
+		.filter((pathValue) => !pathValue.endsWith('/.node.js'))
+		.sort((a, b) => a.localeCompare(b));
+	const packageNodePaths = [...(packageJson.n8n?.nodes ?? [])]
+		.map((value) => String(value))
+		.sort((a, b) => a.localeCompare(b));
+	const missingPackageNodePaths = expectedNodePaths.filter((value) => !packageNodePaths.includes(value));
+	const extraPackageNodePaths = packageNodePaths.filter((value) => !expectedNodePaths.includes(value));
+
+	if (
+		duplicateOperationIds.length ||
+		missing.length ||
+		extra.length ||
+		drift.length ||
+		missingDomainTags.length ||
+		extraDomainTags.length ||
+		domainCoverageMissing.length ||
+		domainCoverageExtra.length ||
+		duplicateDomainAssignments.length ||
+		missingInDomainManifest.length ||
+		extraInDomainManifest.length ||
+		missingDomainFiles.length ||
+		missingPackageNodePaths.length ||
+		extraPackageNodePaths.length
+	) {
 		if (duplicateOperationIds.length) {
 			process.stderr.write(
 				`Duplicate operation IDs in official OpenAPI (${duplicateOperationIds.length}):\n${duplicateOperationIds.join('\n')}\n`,
@@ -139,11 +263,61 @@ async function main() {
 		if (drift.length) {
 			process.stderr.write(`Operation metadata drift (${drift.length}):\n${drift.join('\n')}\n`);
 		}
+		if (missingDomainTags.length) {
+			process.stderr.write(
+				`Missing domains in azuracast.domains.json (${missingDomainTags.length}):\n${missingDomainTags.join('\n')}\n`,
+			);
+		}
+		if (extraDomainTags.length) {
+			process.stderr.write(
+				`Extra domains in azuracast.domains.json (${extraDomainTags.length}):\n${extraDomainTags.join('\n')}\n`,
+			);
+		}
+		if (domainCoverageMissing.length) {
+			process.stderr.write(
+				`Domain operation coverage missing entries (${domainCoverageMissing.length}):\n${domainCoverageMissing.join('\n')}\n`,
+			);
+		}
+		if (domainCoverageExtra.length) {
+			process.stderr.write(
+				`Domain operation coverage extra entries (${domainCoverageExtra.length}):\n${domainCoverageExtra.join('\n')}\n`,
+			);
+		}
+		if (duplicateDomainAssignments.length) {
+			process.stderr.write(
+				`Duplicate operation assignments across domains (${duplicateDomainAssignments.length}):\n${duplicateDomainAssignments.join('\n')}\n`,
+			);
+		}
+		if (missingInDomainManifest.length) {
+			process.stderr.write(
+				`Official operations missing from domains manifest (${missingInDomainManifest.length}):\n${missingInDomainManifest.join('\n')}\n`,
+			);
+		}
+		if (extraInDomainManifest.length) {
+			process.stderr.write(
+				`Operations in domains manifest not present in official OpenAPI (${extraInDomainManifest.length}):\n${extraInDomainManifest.join('\n')}\n`,
+			);
+		}
+		if (missingDomainFiles.length) {
+			process.stderr.write(
+				`Missing generated domain node files (${missingDomainFiles.length}):\n${missingDomainFiles.join('\n')}\n`,
+			);
+		}
+		if (missingPackageNodePaths.length) {
+			process.stderr.write(
+				`Missing node paths in package.json n8n.nodes (${missingPackageNodePaths.length}):\n${missingPackageNodePaths.join('\n')}\n`,
+			);
+		}
+		if (extraPackageNodePaths.length) {
+			process.stderr.write(
+				`Extra node paths in package.json n8n.nodes (${extraPackageNodePaths.length}):\n${extraPackageNodePaths.join('\n')}\n`,
+			);
+		}
 		process.exit(1);
 	}
 
 	process.stdout.write(
-		`Operation coverage verified: ${officialOperationIds.length}/${officialOperationIds.length} (metadata aligned)\n`,
+		`Operation coverage verified: ${officialOperationIds.length}/${officialOperationIds.length} across ${domains.length} domain nodes (metadata aligned)\n`,
 	);
 }
 

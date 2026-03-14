@@ -230,8 +230,13 @@ function createExecutionContext(params, credentials, inputItem) {
 }
 
 async function main() {
-	const { AzuraCast } = await import(
-		pathToFileURL(path.join(projectRoot, 'dist', 'nodes', 'AzuraCast', 'AzuraCast.node.js')).href
+	const {
+		AzuraCastPublicMiscellaneous,
+		AzuraCastPublicNowPlaying,
+		AzuraCastStationsMedia,
+		AzuraCastStationsWebHooks,
+	} = await import(
+		pathToFileURL(path.join(projectRoot, 'dist', 'nodes', 'AzuraCast', 'index.js')).href
 	);
 
 	const mock = await startMockServer();
@@ -245,7 +250,10 @@ async function main() {
 	};
 
 	try {
-		const node = new AzuraCast();
+		const publicMiscellaneousNode = new AzuraCastPublicMiscellaneous();
+		const publicNowPlayingNode = new AzuraCastPublicNowPlaying();
+		const stationsWebHooksNode = new AzuraCastStationsWebHooks();
+		const stationsMediaNode = new AzuraCastStationsMedia();
 
 		const statusContext = createExecutionContext(
 			{
@@ -259,7 +267,7 @@ async function main() {
 			},
 			credentials,
 		);
-		const statusResult = await node.execute.call(statusContext);
+		const statusResult = await publicMiscellaneousNode.execute.call(statusContext);
 		assert.equal(statusResult[0][0].json.online, true);
 
 		const publicNowPlayingWithoutApiKeyContext = createExecutionContext(
@@ -274,7 +282,9 @@ async function main() {
 			},
 			publicCredentials,
 		);
-		const nowPlayingResult = await node.execute.call(publicNowPlayingWithoutApiKeyContext);
+		const nowPlayingResult = await publicNowPlayingNode.execute.call(
+			publicNowPlayingWithoutApiKeyContext,
+		);
 		assert.equal(Array.isArray(nowPlayingResult[0]), true);
 		assert.equal(nowPlayingResult[0][0].json.station.shortcode, 'demo');
 		const publicNowPlayingRequest = mock.requests.find(
@@ -296,7 +306,7 @@ async function main() {
 			},
 			publicCredentials,
 		);
-		const nowPlayingArtResult = await node.execute.call(nowPlayingArtContext);
+		const nowPlayingArtResult = await publicNowPlayingNode.execute.call(nowPlayingArtContext);
 		assert.equal(nowPlayingArtResult[0][0].json.data, 'JPEGDATA');
 
 		const privateWithoutApiKeyContext = createExecutionContext(
@@ -313,7 +323,7 @@ async function main() {
 			publicCredentials,
 		);
 		await assert.rejects(
-			async () => node.execute.call(privateWithoutApiKeyContext),
+			async () => stationsWebHooksNode.execute.call(privateWithoutApiKeyContext),
 			/HTTP 401: Unauthorized/,
 		);
 
@@ -330,7 +340,7 @@ async function main() {
 			},
 			credentials,
 		);
-		const webhookResult = await node.execute.call(createWebhookContext);
+		const webhookResult = await stationsWebHooksNode.execute.call(createWebhookContext);
 		assert.equal(webhookResult[0][0].json.created, true);
 
 		const multipartContext = createExecutionContext(
@@ -358,7 +368,7 @@ async function main() {
 				},
 			},
 		);
-		const multipartResult = await node.execute.call(multipartContext);
+		const multipartResult = await stationsMediaNode.execute.call(multipartContext);
 		assert.equal(multipartResult[0][0].json.uploaded, true);
 
 		const binaryContext = createExecutionContext(
@@ -374,7 +384,7 @@ async function main() {
 			},
 			credentials,
 		);
-		const binaryResult = await node.execute.call(binaryContext);
+		const binaryResult = await stationsMediaNode.execute.call(binaryContext);
 		assert.ok(binaryResult[0][0].binary.audio.data);
 
 		const webhookRequest = [...mock.requests].reverse().find(

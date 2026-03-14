@@ -1,8 +1,11 @@
 {
-	"node": "@renebello/n8n-nodes-azuracast.azuraCast",
+	"node": "@renebello/n8n-nodes-azuracast.azuraCastStationsRemoteRelays",
 	"nodeVersion": "1.0",
 	"codexVersion": "1.0",
-	"categories": ["Development", "Productivity"],
+	"categories": [
+		"Development",
+		"Productivity"
+	],
 	"resources": {
 		"credentialDocumentation": [
 			{

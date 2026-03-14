@@ -34,9 +34,19 @@ Package name:
 
 ## Operations
 
-This package provides one node: **AzuraCast**.
+This package provides **27 domain nodes**, mapped to official AzuraCast API tags.
 
-Operations are generated from the official AzuraCast OpenAPI source and exposed as selectable operation IDs inside the node.
+Each node exposes only the operations for its domain, for example:
+
+- `AzuraCast Public Now Playing`
+- `AzuraCast Public Stations`
+- `AzuraCast My Account`
+- `AzuraCast Administration General`
+- `AzuraCast Stations Media`
+- `AzuraCast Stations Playlists`
+- `AzuraCast Stations Web Hooks`
+
+Domain nodes are generated from the official AzuraCast OpenAPI source.
 
 Current operation coverage in this repository:
 
@@ -84,7 +94,7 @@ For advanced API authentication and endpoint behavior, see the official AzuraCas
 
 Basic flow:
 
-1. Add the **AzuraCast** node to your workflow.
+1. Add the **AzuraCast domain node** that matches the API area you need.
 2. Select or create **AzuraCast API** credentials.
 3. Choose an **Operation**.
 4. Fill required path/query/body inputs.
@@ -92,7 +102,8 @@ Basic flow:
 
 Notes:
 
-- Operation details and required payloads come from the OpenAPI-derived operation list.
+- Domain separation follows official AzuraCast tags.
+- Operation details and required payloads come from the OpenAPI-derived operation list for each domain node.
 - When AzuraCast updates its API, regenerate and verify operation coverage:
   - `npm run generate:operations`
   - `npm run verify:operations`
@@ -132,6 +143,11 @@ Versioning:
 - [AzuraCast official OpenAPI source](https://raw.githubusercontent.com/AzuraCast/AzuraCast/main/web/static/openapi.yml)
 
 ## Version history
+
+### Unreleased
+
+- Domain-based node architecture (one node per official AzuraCast API domain/tag)
+- Shared execution runtime for consistent request/response behavior across all domain nodes
 
 ### 0.1.0
 
