@@ -325,45 +325,19 @@ function operationIdToLabel(operationId: string): string {
 		.join(' ');
 }
 
-function isConciseOperationLabel(value: string): boolean {
-	const normalized = sanitizeUiLabel(normalizeOperationLabel(value));
-	if (!normalized) {
-		return false;
-	}
-	const words = normalized.split(/\s+/).filter(Boolean).length;
-	return normalized.length <= 56 && words <= 8;
-}
-
 function getOperationBaseName(operation: AzuraCastSnapshotOperation): string {
 	const idLabel = operationIdToLabel(operation.id);
 	if (idLabel) {
-		const normalizedIdLabel = toDisplayName(sanitizeUiLabel(idLabel));
-		const summaryLabel = normalizeOperationLabel(operation.summary);
-		const methodPrefix = `${operation.method.toUpperCase().slice(0, 1)}${operation.method
-			.toLowerCase()
-			.slice(1)} `;
-		if (
-			normalizedIdLabel.startsWith(methodPrefix) &&
-			summaryLabel &&
-			!isPathLikeLabel(summaryLabel) &&
-			isConciseOperationLabel(summaryLabel)
-		) {
-			return toDisplayName(sanitizeUiLabel(summaryLabel));
-		}
-		return normalizedIdLabel;
+		return toDisplayName(sanitizeUiLabel(idLabel));
 	}
 
 	const summaryLabel = normalizeOperationLabel(operation.summary);
-	if (summaryLabel && !isPathLikeLabel(summaryLabel) && isConciseOperationLabel(summaryLabel)) {
+	if (summaryLabel && !isPathLikeLabel(summaryLabel)) {
 		return toDisplayName(sanitizeUiLabel(summaryLabel));
 	}
 
 	const descriptionLabel = normalizeOperationLabel(operation.description);
-	if (
-		descriptionLabel &&
-		!isPathLikeLabel(descriptionLabel) &&
-		isConciseOperationLabel(descriptionLabel)
-	) {
+	if (descriptionLabel && !isPathLikeLabel(descriptionLabel)) {
 		return toDisplayName(sanitizeUiLabel(descriptionLabel));
 	}
 	return `${operation.method.toUpperCase()} request`;
@@ -440,6 +414,105 @@ function toDisplayName(value: string): string {
 			return part.charAt(0).toUpperCase() + part.slice(1);
 		})
 		.join(' ');
+}
+
+function singularizeToken(token: string): string {
+	if (token.endsWith('ies') && token.length > 3) {
+		return `${token.slice(0, -3)}y`;
+	}
+	if (token.endsWith('s') && token.length > 1 && !token.endsWith('ss')) {
+		return token.slice(0, -1);
+	}
+	return token;
+}
+
+function normalizeResourceToken(token: string): string {
+	const cleaned = token.toLowerCase().replace(/[^a-z0-9]/g, '');
+	if (!cleaned) {
+		return '';
+	}
+	if (cleaned === 'admin') {
+		return 'administration';
+	}
+	if (cleaned === 'debug') {
+		return 'debugging';
+	}
+	return singularizeToken(cleaned);
+}
+
+function shortenOperationNameForResource(name: string, resourceDisplayName: string): string {
+	const nameTokens = name.split(/\s+/).filter(Boolean);
+	if (nameTokens.length <= 1) {
+		return name;
+	}
+
+	const resourceTokenSet = new Set(
+		resourceDisplayName
+			.split(/\s+/)
+			.map((token) => normalizeResourceToken(token))
+			.filter(Boolean),
+	);
+	if (resourceTokenSet.size === 0) {
+		return name;
+	}
+
+	const leadingVerbSet = new Set([
+		'add',
+		'clear',
+		'create',
+		'delete',
+		'download',
+		'edit',
+		'generate',
+		'get',
+		'initialize',
+		'list',
+		'patch',
+		'post',
+		'put',
+		'remove',
+		'retrieve',
+		'return',
+		'run',
+		'send',
+		'set',
+		'submit',
+		'trigger',
+		'update',
+		'upload',
+		'view',
+	]);
+	const keepLeadingVerb = leadingVerbSet.has(normalizeResourceToken(nameTokens[0]));
+	const prefixLength = keepLeadingVerb ? 1 : 0;
+	let index = prefixLength;
+	while (nameTokens.length - index > 1) {
+		const normalizedToken = normalizeResourceToken(nameTokens[index]);
+		if (!normalizedToken || !resourceTokenSet.has(normalizedToken)) {
+			break;
+		}
+		index += 1;
+	}
+
+	if (index === prefixLength) {
+		return name;
+	}
+
+	const shortenedTokens = [...nameTokens.slice(0, prefixLength), ...nameTokens.slice(index)];
+	if (shortenedTokens.length === 0) {
+		return name;
+	}
+	return shortenedTokens.join(' ');
+}
+
+function polishOperationName(name: string, method: string): string {
+	const normalized = name.replace(/\s+/g, ' ').trim();
+	if (!normalized) {
+		return name;
+	}
+	if (method.toLowerCase() === 'post' && /^post do /i.test(normalized)) {
+		return normalized.replace(/^post do /i, 'Run ');
+	}
+	return normalized;
 }
 
 function defaultFieldDefinition(name: string, required: boolean): AzuraCastSnapshotFieldDefinition {
@@ -1032,23 +1105,25 @@ function getDomainOperations(tag: string) {
 
 function buildOperationOptions(operations: AzuraCastSnapshotOperation[]) {
 	const resourceDisplayName = toDisplayName(String(operations[0]?.tag ?? 'General'));
-	const actionResourceLabel = toActionLabel(resourceDisplayName);
 	const usedNames = new Set<string>();
 	const operationOptions = operations.map((operation) => {
-		const baseName = toDisplayName(sanitizeUiLabel(getOperationBaseName(operation)));
+		const rawBaseName = toDisplayName(sanitizeUiLabel(getOperationBaseName(operation)));
+		const baseName = polishOperationName(
+			shortenOperationNameForResource(rawBaseName, resourceDisplayName),
+			operation.method,
+		);
 		const name = buildUniqueOperationName(baseName, operation.method, usedNames);
 		const summaryOrDescription = normalizeOperationLabel(operation.summary || operation.description);
-		const summaryDescription =
+		const normalizedDescription =
 			summaryOrDescription && !isPathLikeLabel(summaryOrDescription)
 				? sanitizeUiLabel(summaryOrDescription)
-				: '';
-		const action = toActionLabel(`${name} in ${actionResourceLabel}`);
+				: sanitizeUiLabel(normalizeOperationLabel(operation.description));
 		const description =
-			summaryDescription ||
-			`Run ${toActionLabel(name)} in ${toActionLabel(resourceDisplayName)}.`;
+			normalizedDescription ||
+			`Runs ${toActionLabel(name)} for the ${toActionLabel(resourceDisplayName)} resource.`;
 		return {
 			name,
-			action,
+			action: toActionLabel(name),
 			value: operation.id,
 			description: description || operation.tag,
 		};

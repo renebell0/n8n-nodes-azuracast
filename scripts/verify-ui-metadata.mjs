@@ -72,8 +72,9 @@ async function main() {
 			if (isPathLikeLabel(action)) {
 				throw new Error(`Operation action label is not UI-safe: "${action}"`);
 			}
-			if (!action.includes(' in ')) {
-				throw new Error(`Operation action label is missing resource context: "${action}"`);
+			const nameWordCount = name.split(/\s+/).filter(Boolean).length;
+			if (nameWordCount > 8) {
+				throw new Error(`Operation option label is too long (${nameWordCount} words): "${name}"`);
 			}
 			if (names.has(name)) {
 				throw new Error(`Duplicate operation label within the same resource: "${name}"`);
