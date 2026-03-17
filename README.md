@@ -3,7 +3,7 @@
 ![OpenAPI Coverage](https://img.shields.io/badge/OpenAPI%20coverage-263%2F263-2ea44f)
 ![n8n Community Node](https://img.shields.io/badge/n8n-community%20node-ff6d5a)
 ![Node API Version](https://img.shields.io/badge/n8n%20Nodes%20API-v1-0a7cff)
-![License](https://img.shields.io/badge/license-Apache%202.0-6f42c1)
+![License](https://img.shields.io/badge/license-MIT-6f42c1)
 
 ![n8n-nodes-azuracast](https://raw.githubusercontent.com/renebell0/assets/e1d64715e74d5a5dd3e694aca3cf019c761f7742/readme-images/n8n-nodes-azuracast.jpg)
 
@@ -128,7 +128,9 @@ Package naming and discovery requirements for n8n:
 Publishing options:
 
 - Recommended release flow: `npm run release`
-- Automated publish with provenance: push a tag like `v0.1.0` and let GitHub Actions run `.github/workflows/publish.yml`
+- Automated publish with provenance:
+  - Create the repository secret `NPM_TOKEN` with publish permissions on npm
+  - Push a tag like `v0.1.0` and let GitHub Actions run `.github/workflows/publish.yml`
 - Direct publish flow: `npm run release:publish`
 - If you use a scoped package name, publish with public access enabled
 

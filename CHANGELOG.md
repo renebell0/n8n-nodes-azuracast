@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Switched the project license from Apache-2.0 to MIT for n8n verification alignment
+
 ## [0.1.2] - 2026-03-17
 
 - Replaced the multi-node domain layout with a single `AzuraCast` node in n8n
