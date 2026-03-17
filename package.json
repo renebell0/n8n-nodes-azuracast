@@ -1,6 +1,6 @@
 {
 	"name": "@renebello/n8n-nodes-azuracast",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"description": "n8n community node for AzuraCast Web API",
 	"license": "Apache-2.0",
 	"homepage": "https://github.com/renebell0/n8n-nodes-azuracast",
@@ -32,7 +32,8 @@
 		"webhooks"
 	],
 	"author": {
-		"name": "renebell0"
+		"name": "Rene Bello",
+		"email": "contacto@renebello.com"
 	},
 	"repository": {
 		"type": "git",
@@ -50,7 +51,8 @@
 		"publish:dry-run": "npm publish --dry-run --ignore-scripts",
 		"simulate:local": "node scripts/simulate-local.mjs",
 		"verify:operations": "node scripts/verify-operations.mjs",
-		"validate:publish": "npm run lint && npm run build && npm run verify:operations && npm run simulate:local && npm run pack:check && npm run publish:dry-run",
+		"verify:ui": "node scripts/verify-ui-metadata.mjs",
+		"validate:publish": "npm run lint && npm run build && npm run verify:operations && npm run verify:ui && npm run simulate:local && npm run pack:check && npm run publish:dry-run",
 		"release": "n8n-node release",
 		"release:publish": "n8n-node release --publish",
 		"prepublishOnly": "n8n-node prerelease"
@@ -70,33 +72,7 @@
 			"dist/credentials/AzuraCastApi.credentials.js"
 		],
 		"nodes": [
-			"dist/nodes/AzuraCast/AzuraCastAdministrationBackups.node.js",
-			"dist/nodes/AzuraCast/AzuraCastAdministrationCustomFields.node.js",
-			"dist/nodes/AzuraCast/AzuraCastAdministrationDebugging.node.js",
-			"dist/nodes/AzuraCast/AzuraCastAdministrationGeneral.node.js",
-			"dist/nodes/AzuraCast/AzuraCastAdministrationRoles.node.js",
-			"dist/nodes/AzuraCast/AzuraCastAdministrationSettings.node.js",
-			"dist/nodes/AzuraCast/AzuraCastAdministrationStations.node.js",
-			"dist/nodes/AzuraCast/AzuraCastAdministrationStorageLocations.node.js",
-			"dist/nodes/AzuraCast/AzuraCastAdministrationUsers.node.js",
-			"dist/nodes/AzuraCast/AzuraCastMiscellaneous.node.js",
-			"dist/nodes/AzuraCast/AzuraCastMyAccount.node.js",
-			"dist/nodes/AzuraCast/AzuraCastPublicMiscellaneous.node.js",
-			"dist/nodes/AzuraCast/AzuraCastPublicNowPlaying.node.js",
-			"dist/nodes/AzuraCast/AzuraCastPublicStations.node.js",
-			"dist/nodes/AzuraCast/AzuraCastStationsBroadcasting.node.js",
-			"dist/nodes/AzuraCast/AzuraCastStationsGeneral.node.js",
-			"dist/nodes/AzuraCast/AzuraCastStationsHlsStreams.node.js",
-			"dist/nodes/AzuraCast/AzuraCastStationsMedia.node.js",
-			"dist/nodes/AzuraCast/AzuraCastStationsMountPoints.node.js",
-			"dist/nodes/AzuraCast/AzuraCastStationsPlaylists.node.js",
-			"dist/nodes/AzuraCast/AzuraCastStationsPodcasts.node.js",
-			"dist/nodes/AzuraCast/AzuraCastStationsQueue.node.js",
-			"dist/nodes/AzuraCast/AzuraCastStationsRemoteRelays.node.js",
-			"dist/nodes/AzuraCast/AzuraCastStationsReports.node.js",
-			"dist/nodes/AzuraCast/AzuraCastStationsSftpUsers.node.js",
-			"dist/nodes/AzuraCast/AzuraCastStationsStreamersDjs.node.js",
-			"dist/nodes/AzuraCast/AzuraCastStationsWebHooks.node.js"
+			"dist/nodes/AzuraCast/AzuraCast.node.js"
 		]
 	},
 	"devDependencies": {

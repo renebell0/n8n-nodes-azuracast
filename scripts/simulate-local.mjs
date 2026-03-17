@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -229,15 +230,39 @@ function createExecutionContext(params, credentials, inputItem) {
 	};
 }
 
+function sanitizeNameSegment(value) {
+	return value
+		.replace(/[^a-zA-Z0-9]+/g, '_')
+		.replace(/^_+|_+$/g, '')
+		.toLowerCase();
+}
+
+function buildOperationResourceMap() {
+	const snapshotPath = path.join(
+		projectRoot,
+		'nodes',
+		'AzuraCast',
+		'azuracast.openapi.snapshot.json',
+	);
+	const snapshot = JSON.parse(fs.readFileSync(snapshotPath, 'utf8'));
+	const map = new Map();
+	for (const operation of snapshot.operations ?? []) {
+		const operationId = String(operation.id ?? '').trim();
+		const tag = String(operation.tag ?? 'General').trim();
+		if (!operationId) {
+			continue;
+		}
+		map.set(operationId, `resource_${sanitizeNameSegment(tag)}`);
+	}
+	return map;
+}
+
 async function main() {
-	const {
-		AzuraCastPublicMiscellaneous,
-		AzuraCastPublicNowPlaying,
-		AzuraCastStationsMedia,
-		AzuraCastStationsWebHooks,
-	} = await import(
+	const { AzuraCast } = await import(
 		pathToFileURL(path.join(projectRoot, 'dist', 'nodes', 'AzuraCast', 'index.js')).href
 	);
+	const operationResourceMap = buildOperationResourceMap();
+	const getResource = (operationId) => operationResourceMap.get(operationId) ?? 'resource_general';
 
 	const mock = await startMockServer();
 	const credentials = {
@@ -250,14 +275,12 @@ async function main() {
 	};
 
 	try {
-		const publicMiscellaneousNode = new AzuraCastPublicMiscellaneous();
-		const publicNowPlayingNode = new AzuraCastPublicNowPlaying();
-		const stationsWebHooksNode = new AzuraCastStationsWebHooks();
-		const stationsMediaNode = new AzuraCastStationsMedia();
+		const azuraCastNode = new AzuraCast();
 
 		const statusContext = createExecutionContext(
 			{
-				operationId: 'getStatus',
+				resource: getResource('getStatus'),
+				operation: 'getStatus',
 				pathParameters: '{}',
 				sendQueryParameters: false,
 				bodyMode: 'none',
@@ -267,12 +290,13 @@ async function main() {
 			},
 			credentials,
 		);
-		const statusResult = await publicMiscellaneousNode.execute.call(statusContext);
+		const statusResult = await azuraCastNode.execute.call(statusContext);
 		assert.equal(statusResult[0][0].json.online, true);
 
 		const publicNowPlayingWithoutApiKeyContext = createExecutionContext(
 			{
-				operationId: 'getAllNowPlaying',
+				resource: getResource('getAllNowPlaying'),
+				operation: 'getAllNowPlaying',
 				pathParameters: '{}',
 				sendQueryParameters: false,
 				bodyMode: 'none',
@@ -282,9 +306,7 @@ async function main() {
 			},
 			publicCredentials,
 		);
-		const nowPlayingResult = await publicNowPlayingNode.execute.call(
-			publicNowPlayingWithoutApiKeyContext,
-		);
+		const nowPlayingResult = await azuraCastNode.execute.call(publicNowPlayingWithoutApiKeyContext);
 		assert.equal(Array.isArray(nowPlayingResult[0]), true);
 		assert.equal(nowPlayingResult[0][0].json.station.shortcode, 'demo');
 		const publicNowPlayingRequest = mock.requests.find(
@@ -296,7 +318,8 @@ async function main() {
 
 		const nowPlayingArtContext = createExecutionContext(
 			{
-				operationId: 'getStationNowPlayingArt',
+				resource: getResource('getStationNowPlayingArt'),
+				operation: 'getStationNowPlayingArt',
 				pathParameters: '{"station_id":"demo"}',
 				sendQueryParameters: false,
 				bodyMode: 'none',
@@ -306,12 +329,13 @@ async function main() {
 			},
 			publicCredentials,
 		);
-		const nowPlayingArtResult = await publicNowPlayingNode.execute.call(nowPlayingArtContext);
+		const nowPlayingArtResult = await azuraCastNode.execute.call(nowPlayingArtContext);
 		assert.equal(nowPlayingArtResult[0][0].json.data, 'JPEGDATA');
 
 		const privateWithoutApiKeyContext = createExecutionContext(
 			{
-				operationId: 'addWebhook',
+				resource: getResource('addWebhook'),
+				operation: 'addWebhook',
 				pathParameters: '{"station_id":"demo"}',
 				sendQueryParameters: false,
 				bodyMode: 'json',
@@ -323,13 +347,14 @@ async function main() {
 			publicCredentials,
 		);
 		await assert.rejects(
-			async () => stationsWebHooksNode.execute.call(privateWithoutApiKeyContext),
+			async () => azuraCastNode.execute.call(privateWithoutApiKeyContext),
 			/HTTP 401: Unauthorized/,
 		);
 
 		const createWebhookContext = createExecutionContext(
 			{
-				operationId: 'addWebhook',
+				resource: getResource('addWebhook'),
+				operation: 'addWebhook',
 				pathParameters: '{"station_id":"demo"}',
 				sendQueryParameters: false,
 				bodyMode: 'json',
@@ -340,18 +365,18 @@ async function main() {
 			},
 			credentials,
 		);
-		const webhookResult = await stationsWebHooksNode.execute.call(createWebhookContext);
+		const webhookResult = await azuraCastNode.execute.call(createWebhookContext);
 		assert.equal(webhookResult[0][0].json.created, true);
 
 		const multipartContext = createExecutionContext(
 			{
-				operationId: 'postUploadFile',
+				resource: getResource('postUploadFile'),
+				operation: 'postUploadFile',
 				pathParameters: '{"station_id":"demo"}',
 				sendQueryParameters: false,
-				bodyMode: 'multipart',
-				binaryBodyProperty: 'data',
-				multipartFileFieldName: 'file',
-				multipartFields: '{"path":"uploads/test.mp3"}',
+				bodyModeOverride: 'auto',
+				multipart_binary_property__postuploadfile: 'data',
+				multipart_file_field_name__postuploadfile: 'file',
 				sendAdditionalHeaders: false,
 				responseFormat: 'json',
 				returnFullResponse: false,
@@ -368,13 +393,14 @@ async function main() {
 				},
 			},
 		);
-		const multipartResult = await stationsMediaNode.execute.call(multipartContext);
+		const multipartResult = await azuraCastNode.execute.call(multipartContext);
 		assert.equal(multipartResult[0][0].json.uploaded, true);
 
 		const binaryContext = createExecutionContext(
 			{
-				operationId: 'getPlayFile',
-				pathParameters: '{"station_id":"demo","id":1}',
+				resource: getResource('getPlayFile'),
+				operation: 'getPlayFile',
+				pathParameters: '{"station_id":"demo","media_id":1,"id":1}',
 				sendQueryParameters: false,
 				bodyMode: 'none',
 				sendAdditionalHeaders: false,
@@ -384,7 +410,7 @@ async function main() {
 			},
 			credentials,
 		);
-		const binaryResult = await stationsMediaNode.execute.call(binaryContext);
+		const binaryResult = await azuraCastNode.execute.call(binaryContext);
 		assert.ok(binaryResult[0][0].binary.audio.data);
 
 		const webhookRequest = [...mock.requests].reverse().find(

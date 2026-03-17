@@ -9,6 +9,8 @@ const snapshotPath = path.join(projectRoot, 'nodes', 'AzuraCast', 'azuracast.ope
 const domainsPath = path.join(projectRoot, 'nodes', 'AzuraCast', 'azuracast.domains.json');
 const packageJsonPath = path.join(projectRoot, 'package.json');
 const nodesDir = path.join(projectRoot, 'nodes', 'AzuraCast');
+const propertiesDir = path.join(nodesDir, 'properties');
+const executeDir = path.join(nodesDir, 'execute');
 
 const openApiUrl =
 	process.env.AZURACAST_OPENAPI_URL ??
@@ -112,6 +114,16 @@ async function fileExists(filePath) {
 	}
 }
 
+async function readDirectoryFileNamesSafe(directoryPath) {
+	try {
+		return (await fs.readdir(directoryPath, { withFileTypes: true }))
+			.filter((entry) => entry.isFile())
+			.map((entry) => entry.name);
+	} catch {
+		return [];
+	}
+}
+
 async function main() {
 	const snapshotRaw = await fs.readFile(snapshotPath, 'utf8');
 	const snapshot = JSON.parse(snapshotRaw);
@@ -207,26 +219,44 @@ async function main() {
 		(id) => !officialOperationIds.includes(id),
 	);
 
-	const missingDomainFiles = [];
-	for (const domain of domains) {
-		const className = String(domain.className ?? '').trim();
-		if (!className) {
-			continue;
-		}
-		const nodeTsPath = path.join(nodesDir, `${className}.node.ts`);
-		const nodeJsonPath = path.join(nodesDir, `${className}.node.json`);
-		if (!(await fileExists(nodeTsPath))) {
-			missingDomainFiles.push(path.relative(projectRoot, nodeTsPath));
-		}
-		if (!(await fileExists(nodeJsonPath))) {
-			missingDomainFiles.push(path.relative(projectRoot, nodeJsonPath));
+	const requiredNodeSourceFiles = [
+		path.join(nodesDir, 'AzuraCast.node.ts'),
+		path.join(nodesDir, 'AzuraCast.node.json'),
+		path.join(propertiesDir, 'index.ts'),
+		path.join(propertiesDir, 'resources.ts'),
+		path.join(executeDir, 'index.ts'),
+	];
+	const missingNodeSourceFiles = [];
+	for (const requiredFilePath of requiredNodeSourceFiles) {
+		if (!(await fileExists(requiredFilePath))) {
+			missingNodeSourceFiles.push(path.relative(projectRoot, requiredFilePath));
 		}
 	}
 
-	const expectedNodePaths = domains
-		.map((domain) => `dist/nodes/AzuraCast/${String(domain.className ?? '').trim()}.node.js`)
-		.filter((pathValue) => !pathValue.endsWith('/.node.js'))
-		.sort((a, b) => a.localeCompare(b));
+	const propertiesFiles = await readDirectoryFileNamesSafe(propertiesDir);
+	const executeFiles = await readDirectoryFileNamesSafe(executeDir);
+	const operationPropertyFiles = propertiesFiles.filter((name) => name.endsWith('.operations.ts'));
+	const fieldPropertyFiles = propertiesFiles.filter((name) => name.endsWith('.fields.ts'));
+	const executeResourceFiles = executeFiles.filter((name) => name !== 'index.ts' && name.endsWith('.ts'));
+	const expectedResourceFileCount = domains.length;
+	const moduleFileCountMismatchMessages = [];
+	if (operationPropertyFiles.length !== expectedResourceFileCount) {
+		moduleFileCountMismatchMessages.push(
+			`properties/*.operations.ts expected=${expectedResourceFileCount} actual=${operationPropertyFiles.length}`,
+		);
+	}
+	if (fieldPropertyFiles.length !== expectedResourceFileCount) {
+		moduleFileCountMismatchMessages.push(
+			`properties/*.fields.ts expected=${expectedResourceFileCount} actual=${fieldPropertyFiles.length}`,
+		);
+	}
+	if (executeResourceFiles.length !== expectedResourceFileCount) {
+		moduleFileCountMismatchMessages.push(
+			`execute/*.ts expected=${expectedResourceFileCount} actual=${executeResourceFiles.length}`,
+		);
+	}
+
+	const expectedNodePaths = ['dist/nodes/AzuraCast/AzuraCast.node.js'];
 	const packageNodePaths = [...(packageJson.n8n?.nodes ?? [])]
 		.map((value) => String(value))
 		.sort((a, b) => a.localeCompare(b));
@@ -245,7 +275,8 @@ async function main() {
 		duplicateDomainAssignments.length ||
 		missingInDomainManifest.length ||
 		extraInDomainManifest.length ||
-		missingDomainFiles.length ||
+		missingNodeSourceFiles.length ||
+		moduleFileCountMismatchMessages.length ||
 		missingPackageNodePaths.length ||
 		extraPackageNodePaths.length
 	) {
@@ -298,9 +329,14 @@ async function main() {
 				`Operations in domains manifest not present in official OpenAPI (${extraInDomainManifest.length}):\n${extraInDomainManifest.join('\n')}\n`,
 			);
 		}
-		if (missingDomainFiles.length) {
+		if (missingNodeSourceFiles.length) {
 			process.stderr.write(
-				`Missing generated domain node files (${missingDomainFiles.length}):\n${missingDomainFiles.join('\n')}\n`,
+				`Missing generated AzuraCast node files (${missingNodeSourceFiles.length}):\n${missingNodeSourceFiles.join('\n')}\n`,
+			);
+		}
+		if (moduleFileCountMismatchMessages.length) {
+			process.stderr.write(
+				`Generated module file count mismatch (${moduleFileCountMismatchMessages.length}):\n${moduleFileCountMismatchMessages.join('\n')}\n`,
 			);
 		}
 		if (missingPackageNodePaths.length) {
@@ -317,7 +353,7 @@ async function main() {
 	}
 
 	process.stdout.write(
-		`Operation coverage verified: ${officialOperationIds.length}/${officialOperationIds.length} across ${domains.length} domain nodes (metadata aligned)\n`,
+		`Operation coverage verified: ${officialOperationIds.length}/${officialOperationIds.length} across ${domains.length} grouped resources in one node (metadata aligned)\n`,
 	);
 }
 

@@ -34,19 +34,19 @@ Package name:
 
 ## Operations
 
-This package provides **27 domain nodes**, mapped to official AzuraCast API tags.
+This package provides **one AzuraCast node** with operations organized by official API tag.
 
-Each node exposes only the operations for its domain, for example:
+Inside the node, actions are grouped by resource/tag, for example:
 
-- `AzuraCast Public Now Playing`
-- `AzuraCast Public Stations`
-- `AzuraCast My Account`
-- `AzuraCast Administration General`
-- `AzuraCast Stations Media`
-- `AzuraCast Stations Playlists`
-- `AzuraCast Stations Web Hooks`
+- `Administration General`
+- `Administration Users`
+- `Public Now Playing`
+- `Public Stations`
+- `Stations Media`
+- `Stations Playlists`
+- `Stations Web Hooks`
 
-Domain nodes are generated from the official AzuraCast OpenAPI source.
+Resources and actions are generated from the official AzuraCast OpenAPI source.
 
 Current operation coverage in this repository:
 
@@ -94,16 +94,18 @@ For advanced API authentication and endpoint behavior, see the official AzuraCas
 
 Basic flow:
 
-1. Add the **AzuraCast domain node** that matches the API area you need.
+1. Add the **AzuraCast** node.
 2. Select or create **AzuraCast API** credentials.
-3. Choose an **Operation**.
-4. Fill required path/query/body inputs.
-5. Execute the node.
+3. Choose a **Resource** (API domain/tag).
+4. Choose an **Action**.
+5. Fill required path/query/body inputs.
+6. Execute the node.
 
 Notes:
 
-- Domain separation follows official AzuraCast tags.
-- Operation details and required payloads come from the OpenAPI-derived operation list for each domain node.
+- The action selector is grouped by official AzuraCast API tags.
+- Each action shows only the fields relevant to that specific endpoint.
+- Legacy workflows that use `operationId` and JSON parameter blocks remain supported.
 - When AzuraCast updates its API, regenerate and verify operation coverage:
   - `npm run generate:operations`
   - `npm run verify:operations`
@@ -115,6 +117,7 @@ Pre-publish checklist:
 1. Run `npm run validate:publish`
 2. Confirm package contents with `npm run pack:check`
 3. Confirm npm publish metadata with `npm run publish:dry-run`
+4. Confirm action metadata rendering with `npm run verify:ui`
 
 Package naming and discovery requirements for n8n:
 
@@ -145,6 +148,13 @@ Versioning:
 ## Version history
 
 ### Unreleased
+
+- Replaced the multi-node domain package layout with a single `AzuraCast` node
+- Grouped actions inside the node by official AzuraCast API tags/resources
+- Added operation-specific field rendering per action (path/query/body from OpenAPI metadata)
+- Kept backward compatibility for legacy `operationId` and JSON parameter workflows
+
+### 0.1.1
 
 - Domain-based node architecture (one node per official AzuraCast API domain/tag)
 - Shared execution runtime for consistent request/response behavior across all domain nodes

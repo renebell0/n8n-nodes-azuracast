@@ -1,13 +1,12 @@
 {
-	"generatedAt": "2026-03-14T19:07:10.944Z",
+	"generatedAt": "2026-03-14T21:53:15.742Z",
 	"domainCount": 27,
 	"operationCount": 263,
 	"domains": [
 		{
 			"tag": "Administration: Backups",
-			"className": "AzuraCastAdministrationBackups",
-			"nodeName": "azuraCastAdministrationBackups",
-			"displayName": "AzuraCast Administration Backups",
+			"resourceValue": "resource_administration_backups",
+			"displayName": "Administration Backups",
 			"operationCount": 5,
 			"operationIds": [
 				"adminBackupsViewLog",
@@ -19,9 +18,8 @@
 		},
 		{
 			"tag": "Administration: Custom Fields",
-			"className": "AzuraCastAdministrationCustomFields",
-			"nodeName": "azuraCastAdministrationCustomFields",
-			"displayName": "AzuraCast Administration Custom Fields",
+			"resourceValue": "resource_administration_custom_fields",
+			"displayName": "Administration Custom Fields",
 			"operationCount": 5,
 			"operationIds": [
 				"addCustomField",
@@ -33,9 +31,8 @@
 		},
 		{
 			"tag": "Administration: Debugging",
-			"className": "AzuraCastAdministrationDebugging",
-			"nodeName": "azuraCastAdministrationDebugging",
-			"displayName": "AzuraCast Administration Debugging",
+			"resourceValue": "resource_administration_debugging",
+			"displayName": "Administration Debugging",
 			"operationCount": 10,
 			"operationIds": [
 				"adminDebugClearCache",
@@ -52,9 +49,8 @@
 		},
 		{
 			"tag": "Administration: General",
-			"className": "AzuraCastAdministrationGeneral",
-			"nodeName": "azuraCastAdministrationGeneral",
-			"displayName": "AzuraCast Administration General",
+			"resourceValue": "resource_administration_general",
+			"displayName": "Administration General",
 			"operationCount": 32,
 			"operationIds": [
 				"adminAcmeViewLog",
@@ -93,9 +89,8 @@
 		},
 		{
 			"tag": "Administration: Roles",
-			"className": "AzuraCastAdministrationRoles",
-			"nodeName": "azuraCastAdministrationRoles",
-			"displayName": "AzuraCast Administration Roles",
+			"resourceValue": "resource_administration_roles",
+			"displayName": "Administration Roles",
 			"operationCount": 6,
 			"operationIds": [
 				"addRole",
@@ -108,9 +103,8 @@
 		},
 		{
 			"tag": "Administration: Settings",
-			"className": "AzuraCastAdministrationSettings",
-			"nodeName": "azuraCastAdministrationSettings",
-			"displayName": "AzuraCast Administration Settings",
+			"resourceValue": "resource_administration_settings",
+			"displayName": "Administration Settings",
 			"operationCount": 2,
 			"operationIds": [
 				"editSettings",
@@ -119,9 +113,8 @@
 		},
 		{
 			"tag": "Administration: Stations",
-			"className": "AzuraCastAdministrationStations",
-			"nodeName": "azuraCastAdministrationStations",
-			"displayName": "AzuraCast Administration Stations",
+			"resourceValue": "resource_administration_stations",
+			"displayName": "Administration Stations",
 			"operationCount": 7,
 			"operationIds": [
 				"adminAddStation",
@@ -135,9 +128,8 @@
 		},
 		{
 			"tag": "Administration: Storage Locations",
-			"className": "AzuraCastAdministrationStorageLocations",
-			"nodeName": "azuraCastAdministrationStorageLocations",
-			"displayName": "AzuraCast Administration Storage Locations",
+			"resourceValue": "resource_administration_storage_locations",
+			"displayName": "Administration Storage Locations",
 			"operationCount": 5,
 			"operationIds": [
 				"addStorageLocation",
@@ -149,9 +141,8 @@
 		},
 		{
 			"tag": "Administration: Users",
-			"className": "AzuraCastAdministrationUsers",
-			"nodeName": "azuraCastAdministrationUsers",
-			"displayName": "AzuraCast Administration Users",
+			"resourceValue": "resource_administration_users",
+			"displayName": "Administration Users",
 			"operationCount": 9,
 			"operationIds": [
 				"addLoginToken",
@@ -167,9 +158,8 @@
 		},
 		{
 			"tag": "Miscellaneous",
-			"className": "AzuraCastMiscellaneous",
-			"nodeName": "azuraCastMiscellaneous",
-			"displayName": "AzuraCast Miscellaneous",
+			"resourceValue": "resource_miscellaneous",
+			"displayName": "Miscellaneous",
 			"operationCount": 4,
 			"operationIds": [
 				"getDashboardCharts",
@@ -180,9 +170,8 @@
 		},
 		{
 			"tag": "My Account",
-			"className": "AzuraCastMyAccount",
-			"nodeName": "azuraCastMyAccount",
-			"displayName": "AzuraCast My Account",
+			"resourceValue": "resource_my_account",
+			"displayName": "My Account",
 			"operationCount": 15,
 			"operationIds": [
 				"addMyApiKey",
@@ -204,9 +193,8 @@
 		},
 		{
 			"tag": "Public: Miscellaneous",
-			"className": "AzuraCastPublicMiscellaneous",
-			"nodeName": "azuraCastPublicMiscellaneous",
-			"displayName": "AzuraCast Public Miscellaneous",
+			"resourceValue": "resource_public_miscellaneous",
+			"displayName": "Public Miscellaneous",
 			"operationCount": 3,
 			"operationIds": [
 				"getOpenApiSpec",
@@ -216,9 +204,8 @@
 		},
 		{
 			"tag": "Public: Now Playing",
-			"className": "AzuraCastPublicNowPlaying",
-			"nodeName": "azuraCastPublicNowPlaying",
-			"displayName": "AzuraCast Public Now Playing",
+			"resourceValue": "resource_public_now_playing",
+			"displayName": "Public Now Playing",
 			"operationCount": 3,
 			"operationIds": [
 				"getAllNowPlaying",
@@ -228,9 +215,8 @@
 		},
 		{
 			"tag": "Public: Stations",
-			"className": "AzuraCastPublicStations",
-			"nodeName": "azuraCastPublicStations",
-			"displayName": "AzuraCast Public Stations",
+			"resourceValue": "resource_public_stations",
+			"displayName": "Public Stations",
 			"operationCount": 16,
 			"operationIds": [
 				"getMediaArt",
@@ -253,9 +239,8 @@
 		},
 		{
 			"tag": "Stations: Broadcasting",
-			"className": "AzuraCastStationsBroadcasting",
-			"nodeName": "azuraCastStationsBroadcasting",
-			"displayName": "AzuraCast Stations Broadcasting",
+			"resourceValue": "resource_stations_broadcasting",
+			"displayName": "Stations Broadcasting",
 			"operationCount": 11,
 			"operationIds": [
 				"deleteStereoToolConfiguration",
@@ -273,9 +258,8 @@
 		},
 		{
 			"tag": "Stations: General",
-			"className": "AzuraCastStationsGeneral",
-			"nodeName": "azuraCastStationsGeneral",
-			"displayName": "AzuraCast Stations General",
+			"resourceValue": "resource_stations_general",
+			"displayName": "Stations General",
 			"operationCount": 14,
 			"operationIds": [
 				"deleteStationCustomAsset",
@@ -296,9 +280,8 @@
 		},
 		{
 			"tag": "Stations: HLS Streams",
-			"className": "AzuraCastStationsHlsStreams",
-			"nodeName": "azuraCastStationsHlsStreams",
-			"displayName": "AzuraCast Stations HLS Streams",
+			"resourceValue": "resource_stations_hls_streams",
+			"displayName": "Stations HLS Streams",
 			"operationCount": 5,
 			"operationIds": [
 				"addHlsStream",
@@ -310,9 +293,8 @@
 		},
 		{
 			"tag": "Stations: Media",
-			"className": "AzuraCastStationsMedia",
-			"nodeName": "azuraCastStationsMedia",
-			"displayName": "AzuraCast Stations Media",
+			"resourceValue": "resource_stations_media",
+			"displayName": "Stations Media",
 			"operationCount": 21,
 			"operationIds": [
 				"addFile",
@@ -340,9 +322,8 @@
 		},
 		{
 			"tag": "Stations: Mount Points",
-			"className": "AzuraCastStationsMountPoints",
-			"nodeName": "azuraCastStationsMountPoints",
-			"displayName": "AzuraCast Stations Mount Points",
+			"resourceValue": "resource_stations_mount_points",
+			"displayName": "Stations Mount Points",
 			"operationCount": 8,
 			"operationIds": [
 				"addMount",
@@ -357,9 +338,8 @@
 		},
 		{
 			"tag": "Stations: Playlists",
-			"className": "AzuraCastStationsPlaylists",
-			"nodeName": "azuraCastStationsPlaylists",
-			"displayName": "AzuraCast Stations Playlists",
+			"resourceValue": "resource_stations_playlists",
+			"displayName": "Stations Playlists",
 			"operationCount": 18,
 			"operationIds": [
 				"addPlaylist",
@@ -384,9 +364,8 @@
 		},
 		{
 			"tag": "Stations: Podcasts",
-			"className": "AzuraCastStationsPodcasts",
-			"nodeName": "azuraCastStationsPodcasts",
-			"displayName": "AzuraCast Stations Podcasts",
+			"resourceValue": "resource_stations_podcasts",
+			"displayName": "Stations Podcasts",
 			"operationCount": 17,
 			"operationIds": [
 				"addEpisode",
@@ -410,9 +389,8 @@
 		},
 		{
 			"tag": "Stations: Queue",
-			"className": "AzuraCastStationsQueue",
-			"nodeName": "azuraCastStationsQueue",
-			"displayName": "AzuraCast Stations Queue",
+			"resourceValue": "resource_stations_queue",
+			"displayName": "Stations Queue",
 			"operationCount": 3,
 			"operationIds": [
 				"deleteQueueItem",
@@ -422,9 +400,8 @@
 		},
 		{
 			"tag": "Stations: Remote Relays",
-			"className": "AzuraCastStationsRemoteRelays",
-			"nodeName": "azuraCastStationsRemoteRelays",
-			"displayName": "AzuraCast Stations Remote Relays",
+			"resourceValue": "resource_stations_remote_relays",
+			"displayName": "Stations Remote Relays",
 			"operationCount": 5,
 			"operationIds": [
 				"addRelay",
@@ -436,9 +413,8 @@
 		},
 		{
 			"tag": "Stations: Reports",
-			"className": "AzuraCastStationsReports",
-			"nodeName": "azuraCastStationsReports",
-			"displayName": "AzuraCast Stations Reports",
+			"resourceValue": "resource_stations_reports",
+			"displayName": "Stations Reports",
 			"operationCount": 13,
 			"operationIds": [
 				"deleteStationRequest",
@@ -458,9 +434,8 @@
 		},
 		{
 			"tag": "Stations: SFTP Users",
-			"className": "AzuraCastStationsSftpUsers",
-			"nodeName": "azuraCastStationsSftpUsers",
-			"displayName": "AzuraCast Stations SFTP Users",
+			"resourceValue": "resource_stations_sftp_users",
+			"displayName": "Stations SFTP Users",
 			"operationCount": 5,
 			"operationIds": [
 				"addSftpUser",
@@ -472,9 +447,8 @@
 		},
 		{
 			"tag": "Stations: Streamers/DJs",
-			"className": "AzuraCastStationsStreamersDjs",
-			"nodeName": "azuraCastStationsStreamersDjs",
-			"displayName": "AzuraCast Stations Streamers DJs",
+			"resourceValue": "resource_stations_streamers_djs",
+			"displayName": "Stations Streamers DJs",
 			"operationCount": 12,
 			"operationIds": [
 				"addStreamer",
@@ -493,9 +467,8 @@
 		},
 		{
 			"tag": "Stations: Web Hooks",
-			"className": "AzuraCastStationsWebHooks",
-			"nodeName": "azuraCastStationsWebHooks",
-			"displayName": "AzuraCast Stations Web Hooks",
+			"resourceValue": "resource_stations_web_hooks",
+			"displayName": "Stations Web Hooks",
 			"operationCount": 9,
 			"operationIds": [
 				"addWebhook",
