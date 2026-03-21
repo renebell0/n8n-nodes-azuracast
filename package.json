@@ -54,6 +54,7 @@
 		"verify:operations": "node scripts/verify-operations.mjs",
 		"verify:ui": "node scripts/verify-ui-metadata.mjs",
 		"validate:publish": "npm run lint && npm run build && npm run verify:operations && npm run verify:ui && npm run simulate:local && npm run pack:check && npm run publish:dry-run",
+		"test": "npm run validate:publish",
 		"release": "n8n-node release",
 		"release:publish": "n8n-node release --publish",
 		"prepublishOnly": "n8n-node prerelease"
