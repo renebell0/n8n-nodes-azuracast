@@ -152,6 +152,7 @@ Use this to automate media ingestion from binary input.
 Execution behavior:
 
 - Response wrapping is enabled by default and returns `{ success, data, operation }`.
+- Delete actions return `{ deleted: true }` when successful.
 - If **Continue On Fail** is enabled, failed items return structured error payloads with operation and resource context.
 
 ## Publish to npm
@@ -193,13 +194,19 @@ Versioning:
 
 ## Version history
 
-### Unreleased
+### 0.1.6
+
+- Standardized successful delete action output to `{ deleted: true }`
+- Updated local simulation coverage for delete operation output assertions
+
+### 0.1.5
 
 - Replaced the multi-node domain package layout with a single `AzuraCast` node
 - Grouped actions inside the node by official AzuraCast API tags/resources
 - Refined action naming to a CRUD-first UX style with concise operation labels
 - Added Resource Locator list search for common path IDs across station and admin resources
 - Added runtime handling for locator values and empty-success responses in execute output
+- Added structured continue-on-fail payloads with operation/resource/error metadata
 - Kept backward compatibility for legacy `operationId` and JSON parameter workflows
 
 ### 0.1.1

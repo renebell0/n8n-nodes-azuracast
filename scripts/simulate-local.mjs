@@ -558,7 +558,7 @@ async function main() {
 		);
 		const deleteWebhookResult = await azuraCastNode.execute.call(deleteWebhookContext);
 		assert.equal(deleteWebhookResult[0].length, 1);
-		assert.equal(deleteWebhookResult[0][0].json.success, true);
+		assert.equal(deleteWebhookResult[0][0].json.deleted, true);
 
 		const multipartContext = createExecutionContext(
 			{

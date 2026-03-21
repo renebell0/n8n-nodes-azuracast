@@ -1,6 +1,6 @@
 {
 	"name": "@renebello/n8n-nodes-azuracast",
-	"version": "0.1.5",
+	"version": "0.1.6",
 	"description": "n8n community node for AzuraCast Web API",
 	"license": "MIT",
 	"homepage": "https://github.com/renebell0/n8n-nodes-azuracast",

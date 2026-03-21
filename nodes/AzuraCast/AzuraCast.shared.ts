@@ -3003,6 +3003,7 @@ export async function executeDomainNode(
 				credentialTypeName,
 				requestOptions,
 			);
+			const isDeleteOperation = operation.method.toUpperCase() === 'DELETE';
 
 			if (returnFullResponse) {
 				if (responseFormat === 'binary') {
@@ -3051,6 +3052,16 @@ export async function executeDomainNode(
 						pairedItem: { item: i },
 					});
 				}
+				continue;
+			}
+
+			if (isDeleteOperation) {
+				returnData.push({
+					json: {
+						deleted: true,
+					},
+					pairedItem: { item: i },
+				});
 				continue;
 			}
 

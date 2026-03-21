@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-03-21
+
+- Standardized successful delete action output to `{ deleted: true }`
+- Updated local simulation assertions for delete operations
+- Updated README execution behavior notes for delete responses
+
+## [0.1.5] - 2026-03-21
+
 - Switched the project license from Apache-2.0 to MIT for n8n verification alignment
 - Added CRUD-first operation naming refinements across all AzuraCast resources
 - Added Resource Locator list search support for common path identifiers
