@@ -18,6 +18,7 @@
 - [Credentials](#credentials)
 - [Compatibility](#compatibility)
 - [Usage](#usage)
+- [Workflow Examples](#workflow-examples)
 - [Publish to npm](#publish-to-npm)
 - [Resources](#resources)
 - [Version history](#version-history)
@@ -54,6 +55,8 @@ Current operation coverage in this repository:
 
 Request and response support:
 
+- CRUD-first action labels per resource, plus advanced actions where applicable
+- Resource Locator selectors for common IDs (stations, playlists, media, podcasts, webhooks, and more)
 - Path parameters
 - Query parameters
 - JSON body
@@ -98,17 +101,58 @@ Basic flow:
 2. Select or create **AzuraCast API** credentials.
 3. Choose a **Resource** (API domain/tag).
 4. Choose an **Action**.
-5. Fill required path/query/body inputs.
+5. Select IDs from list pickers (or enter IDs manually) and fill required query/body inputs.
 6. Execute the node.
 
 Notes:
 
 - The action selector is grouped by official AzuraCast API tags.
 - Each action shows only the fields relevant to that specific endpoint.
+- ID-heavy actions include Resource Locator pickers with list search to improve UX in n8n.
 - Legacy workflows that use `operationId` and JSON parameter blocks remain supported.
 - When AzuraCast updates its API, regenerate and verify operation coverage:
   - `npm run generate:operations`
   - `npm run verify:operations`
+
+## Workflow Examples
+
+### 1. Public now playing (no API key)
+
+Use this when you only need current public playback data.
+
+1. Add **AzuraCast** node.
+2. Select **Resource**: `Public Now Playing`.
+3. Select **Action**: `Get All Now Playing`.
+4. Use credentials with only **Base URL**.
+5. Execute and consume `{{$json.data}}`.
+
+### 2. Create station webhook (authenticated)
+
+Use this to register outbound events from AzuraCast.
+
+1. Add **AzuraCast** node.
+2. Select **Resource**: `Stations Web Hooks`.
+3. Select **Action**: `Create Webhook`.
+4. Set **Station** from the Resource Locator.
+5. Fill webhook payload fields and execute.
+6. Use `{{$json.data}}` as created webhook response.
+
+### 3. Upload media file to a station
+
+Use this to automate media ingestion from binary input.
+
+1. Add a node that outputs binary audio in property `data`.
+2. Add **AzuraCast** node.
+3. Select **Resource**: `Stations Media`.
+4. Select **Action**: `Upload File`.
+5. Set **Station** with Resource Locator.
+6. Keep binary property as `data` or set your custom property name.
+7. Execute and check `{{$json.data}}` for upload result.
+
+Execution behavior:
+
+- Response wrapping is enabled by default and returns `{ success, data, operation }`.
+- If **Continue On Fail** is enabled, failed items return structured error payloads with operation and resource context.
 
 ## Publish to npm
 
@@ -153,7 +197,9 @@ Versioning:
 
 - Replaced the multi-node domain package layout with a single `AzuraCast` node
 - Grouped actions inside the node by official AzuraCast API tags/resources
-- Added operation-specific field rendering per action (path/query/body from OpenAPI metadata)
+- Refined action naming to a CRUD-first UX style with concise operation labels
+- Added Resource Locator list search for common path IDs across station and admin resources
+- Added runtime handling for locator values and empty-success responses in execute output
 - Kept backward compatibility for legacy `operationId` and JSON parameter workflows
 
 ### 0.1.1

@@ -1,13 +1,15 @@
 import {
-	NodeApiError,
 	NodeConnectionTypes,
 	type IExecuteFunctions,
 	type INodeExecutionData,
 	type INodeType,
 	type INodeTypeDescription,
 } from 'n8n-workflow';
-import { azuraCastCredentialTypeName } from './AzuraCast.shared';
-import { resourceOperationsFunctions } from './execute';
+import {
+	azuraCastCredentialTypeName,
+	azuraCastListSearchMethods,
+	executeSelectedOperation,
+} from './AzuraCast.shared';
 import { azuraCastNodeProperties } from './properties';
 
 export class AzuraCast implements INodeType {
@@ -34,19 +36,11 @@ export class AzuraCast implements INodeType {
 		properties: azuraCastNodeProperties,
 	};
 
+	methods = {
+		listSearch: azuraCastListSearchMethods,
+	};
+
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-		const resource = this.getNodeParameter('resource', 0) as string;
-		const operation = this.getNodeParameter('operation', 0) as string;
-		const operationGroup = resourceOperationsFunctions[resource];
-		const operationExecutor = operationGroup?.[operation];
-
-		if (!operationExecutor) {
-			throw new NodeApiError(this.getNode(), {
-				message: 'Unsupported operation.',
-				description: `Operation "${operation}" for resource "${resource}" is not supported.`,
-			});
-		}
-
-		return operationExecutor.call(this);
+		return executeSelectedOperation.call(this);
 	}
 }

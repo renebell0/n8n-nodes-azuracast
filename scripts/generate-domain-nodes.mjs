@@ -56,15 +56,17 @@ function asLiteral(value) {
 
 function buildNodeSource() {
 	return `import {
-\tNodeApiError,
 \tNodeConnectionTypes,
 \ttype IExecuteFunctions,
 \ttype INodeExecutionData,
 \ttype INodeType,
 \ttype INodeTypeDescription,
 } from 'n8n-workflow';
-import { azuraCastCredentialTypeName } from './AzuraCast.shared';
-import { resourceOperationsFunctions } from './execute';
+import {
+\tazuraCastCredentialTypeName,
+\tazuraCastListSearchMethods,
+\texecuteSelectedOperation,
+} from './AzuraCast.shared';
 import { azuraCastNodeProperties } from './properties';
 
 export class AzuraCast implements INodeType {
@@ -91,20 +93,12 @@ export class AzuraCast implements INodeType {
 \t\tproperties: azuraCastNodeProperties,
 \t};
 
+\tmethods = {
+\t\tlistSearch: azuraCastListSearchMethods,
+\t};
+
 \tasync execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-\t\tconst resource = this.getNodeParameter('resource', 0) as string;
-\t\tconst operation = this.getNodeParameter('operation', 0) as string;
-\t\tconst operationGroup = resourceOperationsFunctions[resource];
-\t\tconst operationExecutor = operationGroup?.[operation];
-
-\t\tif (!operationExecutor) {
-\t\t\tthrow new NodeApiError(this.getNode(), {
-\t\t\t\tmessage: 'Unsupported operation.',
-\t\t\t\tdescription: \`Operation "\${operation}" for resource "\${resource}" is not supported.\`,
-\t\t\t});
-\t\t}
-
-\t\treturn operationExecutor.call(this);
+\t\treturn executeSelectedOperation.call(this);
 \t}
 }
 `;

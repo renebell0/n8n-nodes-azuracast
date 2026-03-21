@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 - Switched the project license from Apache-2.0 to MIT for n8n verification alignment
+- Added CRUD-first operation naming refinements across all AzuraCast resources
+- Added Resource Locator list search support for common path identifiers
+- Added locator value extraction in runtime path parameter handling
+- Improved output normalization for empty array and empty-body success responses
+- Added item-level operation execution so each input item can resolve its own resource/action parameters
+- Added structured continue-on-fail payloads with operation/resource/error metadata
+- Expanded local simulation coverage for list search and locator-based execution
+- Expanded local simulation with per-item mixed operations and continue-on-fail assertions
 
 ## [0.1.2] - 2026-03-17
 

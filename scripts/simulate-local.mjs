@@ -55,6 +55,24 @@ async function startMockServer() {
 				return;
 			}
 
+			if (req.method === 'GET' && requestUrl.pathname === '/api/stations') {
+				res.writeHead(200, { 'content-type': 'application/json' });
+				res.end(JSON.stringify([{ id: 'demo', name: 'Demo Station' }]));
+				return;
+			}
+
+			if (req.method === 'GET' && requestUrl.pathname === '/api/station/demo/requests') {
+				res.writeHead(200, { 'content-type': 'application/json' });
+				res.end(JSON.stringify([]));
+				return;
+			}
+
+			if (req.method === 'GET' && requestUrl.pathname === '/api/station/demo/playlists') {
+				res.writeHead(200, { 'content-type': 'application/json' });
+				res.end(JSON.stringify([{ id: 11, name: 'Morning Playlist' }]));
+				return;
+			}
+
 			if (req.method === 'GET' && requestUrl.pathname === '/api/nowplaying/demo/art') {
 				res.writeHead(302, { location: '/artwork/demo.jpg' });
 				res.end();
@@ -75,6 +93,17 @@ async function startMockServer() {
 				}
 				res.writeHead(200, { 'content-type': 'application/json' });
 				res.end(JSON.stringify({ created: true, body: parsedBody }));
+				return;
+			}
+
+			if (req.method === 'DELETE' && requestUrl.pathname === '/api/station/demo/webhook/1') {
+				if (!hasValidAuth) {
+					res.writeHead(401, { 'content-type': 'application/json' });
+					res.end(JSON.stringify({ error: 'Unauthorized' }));
+					return;
+				}
+				res.writeHead(204);
+				res.end();
 				return;
 			}
 
@@ -184,8 +213,9 @@ async function runHttpRequest(options, injectedHeaders = {}) {
 	return parsedBody;
 }
 
-function createExecutionContext(params, credentials, inputItem) {
-	const item = inputItem ?? { json: {} };
+function createExecutionContext(params, credentials, inputItems, executionOptions = {}) {
+	const resolvedInputItems = Array.isArray(inputItems) ? inputItems : [inputItems ?? { json: {} }];
+	const parametersByItem = Array.isArray(params) ? params : [params];
 	const apiKey = String(credentials.apiKey ?? '').trim();
 	const authHeaders = apiKey
 		? {
@@ -194,26 +224,30 @@ function createExecutionContext(params, credentials, inputItem) {
 			}
 		: {};
 	return {
-		getInputData: () => [item],
-		getNodeParameter: (name, _itemIndex, fallbackValue) =>
-			Object.prototype.hasOwnProperty.call(params, name) ? params[name] : fallbackValue,
+		getInputData: () => resolvedInputItems,
+		getNodeParameter: (name, itemIndex, fallbackValue) => {
+			const scopedParameters = parametersByItem[itemIndex] ?? parametersByItem[0] ?? {};
+			return Object.prototype.hasOwnProperty.call(scopedParameters, name)
+				? scopedParameters[name]
+				: fallbackValue;
+		},
 		getCredentials: async () => credentials,
 		getNode: () => ({ name: 'AzuraCast' }),
-		continueOnFail: () => false,
+		continueOnFail: () => Boolean(executionOptions.continueOnFail),
 		helpers: {
 			httpRequest: async (options) => runHttpRequest(options),
 			httpRequestWithAuthentication: async (_credentialType, options) =>
 				runHttpRequest(options, authHeaders),
 			returnJsonArray: (data) => data.map((entry) => ({ json: entry })),
-			getBinaryDataBuffer: async (_itemIndex, propertyName) => {
-				const binary = item.binary?.[propertyName];
+			getBinaryDataBuffer: async (itemIndex, propertyName) => {
+				const binary = resolvedInputItems[itemIndex]?.binary?.[propertyName];
 				if (!binary?.data) {
 					throw new Error(`Missing binary property: ${propertyName}`);
 				}
 				return Buffer.from(binary.data, 'base64');
 			},
-			assertBinaryData: (_itemIndex, propertyName) => {
-				const binary = item.binary?.[propertyName];
+			assertBinaryData: (itemIndex, propertyName) => {
+				const binary = resolvedInputItems[itemIndex]?.binary?.[propertyName];
 				if (!binary) {
 					throw new Error(`Missing binary property: ${propertyName}`);
 				}
@@ -226,6 +260,36 @@ function createExecutionContext(params, credentials, inputItem) {
 				fileName: filePath ? path.basename(filePath) : 'file.bin',
 				mimeType: mimeType ?? 'application/octet-stream',
 			}),
+		},
+	};
+}
+
+function createLoadOptionsContext(currentParameters, credentials) {
+	const apiKey = String(credentials.apiKey ?? '').trim();
+	const authHeaders = apiKey
+		? {
+				'X-API-Key': apiKey,
+				Authorization: `Bearer ${apiKey}`,
+			}
+		: {};
+
+	return {
+		getCredentials: async () => credentials,
+		getCurrentNodeParameter: (name, options = {}) => {
+			const value = currentParameters[name];
+			if (
+				options.extractValue &&
+				value &&
+				typeof value === 'object' &&
+				Object.prototype.hasOwnProperty.call(value, 'value')
+			) {
+				return value.value;
+			}
+			return value;
+		},
+		helpers: {
+			httpRequestWithAuthentication: async (_credentialType, options) =>
+				runHttpRequest(options, authHeaders),
 		},
 	};
 }
@@ -277,6 +341,32 @@ async function main() {
 	try {
 		const azuraCastNode = new AzuraCast();
 
+		const stationListSearchContext = createLoadOptionsContext(
+			{ operation: 'getStations' },
+			credentials,
+		);
+		const stationListSearchResult = await azuraCastNode.methods.listSearch.searchStations.call(
+			stationListSearchContext,
+			'demo',
+		);
+		assert.equal(stationListSearchResult.results.length, 1);
+		assert.equal(stationListSearchResult.results[0].value, 'demo');
+
+		const playlistListSearchContext = createLoadOptionsContext(
+			{
+				operation: 'getPlaylist',
+				path__getplaylist__station_id: { mode: 'list', value: 'demo' },
+			},
+			credentials,
+		);
+		const playlistListSearchResult =
+			await azuraCastNode.methods.listSearch.searchPlaylists.call(
+				playlistListSearchContext,
+				'morning',
+			);
+		assert.equal(playlistListSearchResult.results.length, 1);
+		assert.equal(playlistListSearchResult.results[0].value, 11);
+
 		const statusContext = createExecutionContext(
 			{
 				resource: getResource('getStatus'),
@@ -291,7 +381,39 @@ async function main() {
 			credentials,
 		);
 		const statusResult = await azuraCastNode.execute.call(statusContext);
-		assert.equal(statusResult[0][0].json.online, true);
+		assert.equal(statusResult[0][0].json.success, true);
+		assert.equal(statusResult[0][0].json.data.online, true);
+
+		const perItemOperationContext = createExecutionContext(
+			[
+				{
+					resource: getResource('getStatus'),
+					operation: 'getStatus',
+					pathParameters: '{}',
+					sendQueryParameters: false,
+					bodyMode: 'none',
+					sendAdditionalHeaders: false,
+					responseFormat: 'json',
+					returnFullResponse: false,
+				},
+				{
+					resource: getResource('getStations'),
+					operation: 'getStations',
+					pathParameters: '{}',
+					sendQueryParameters: false,
+					bodyMode: 'none',
+					sendAdditionalHeaders: false,
+					responseFormat: 'json',
+					returnFullResponse: false,
+				},
+			],
+			credentials,
+			[{ json: { row: 1 } }, { json: { row: 2 } }],
+		);
+		const perItemOperationResult = await azuraCastNode.execute.call(perItemOperationContext);
+		assert.equal(perItemOperationResult[0].length, 2);
+		assert.equal(perItemOperationResult[0][0].json.operation, 'getStatus');
+		assert.equal(perItemOperationResult[0][1].json.operation, 'getStations');
 
 		const publicNowPlayingWithoutApiKeyContext = createExecutionContext(
 			{
@@ -308,13 +430,33 @@ async function main() {
 		);
 		const nowPlayingResult = await azuraCastNode.execute.call(publicNowPlayingWithoutApiKeyContext);
 		assert.equal(Array.isArray(nowPlayingResult[0]), true);
-		assert.equal(nowPlayingResult[0][0].json.station.shortcode, 'demo');
+		assert.equal(nowPlayingResult[0][0].json.success, true);
+		assert.equal(nowPlayingResult[0][0].json.data[0].station.shortcode, 'demo');
 		const publicNowPlayingRequest = mock.requests.find(
 			(request) => request.method === 'GET' && request.pathname === '/api/nowplaying',
 		);
 		assert.ok(publicNowPlayingRequest);
 		assert.equal(publicNowPlayingRequest.headers['x-api-key'], undefined);
 		assert.equal(publicNowPlayingRequest.headers.authorization, undefined);
+
+		const requestableSongsContext = createExecutionContext(
+			{
+				resource: getResource('getRequestableSongs'),
+				operation: 'getRequestableSongs',
+				pathParameters: '{"station_id":"demo"}',
+				sendQueryParameters: false,
+				bodyMode: 'none',
+				sendAdditionalHeaders: false,
+				responseFormat: 'json',
+				returnFullResponse: false,
+			},
+			publicCredentials,
+		);
+		const requestableSongsResult = await azuraCastNode.execute.call(requestableSongsContext);
+		assert.equal(requestableSongsResult[0].length, 1);
+		assert.equal(requestableSongsResult[0][0].json.success, true);
+		assert.equal(Array.isArray(requestableSongsResult[0][0].json.data), true);
+		assert.equal(requestableSongsResult[0][0].json.data.length, 0);
 
 		const nowPlayingArtContext = createExecutionContext(
 			{
@@ -330,6 +472,7 @@ async function main() {
 			publicCredentials,
 		);
 		const nowPlayingArtResult = await azuraCastNode.execute.call(nowPlayingArtContext);
+		assert.equal(nowPlayingArtResult[0][0].json.success, true);
 		assert.equal(nowPlayingArtResult[0][0].json.data, 'JPEGDATA');
 
 		const privateWithoutApiKeyContext = createExecutionContext(
@@ -351,6 +494,36 @@ async function main() {
 			/HTTP 401: Unauthorized/,
 		);
 
+		const privateWithoutApiKeyContinueContext = createExecutionContext(
+			{
+				resource: getResource('addWebhook'),
+				operation: 'addWebhook',
+				pathParameters: '{"station_id":"demo"}',
+				sendQueryParameters: false,
+				bodyMode: 'json',
+				jsonBody: '{"name":"Node Test Hook","is_enabled":true}',
+				sendAdditionalHeaders: false,
+				responseFormat: 'json',
+				returnFullResponse: false,
+			},
+			publicCredentials,
+			{ json: {} },
+			{ continueOnFail: true },
+		);
+		const privateWithoutApiKeyContinueResult = await azuraCastNode.execute.call(
+			privateWithoutApiKeyContinueContext,
+		);
+		assert.equal(privateWithoutApiKeyContinueResult[0][0].json.success, false);
+		assert.equal(privateWithoutApiKeyContinueResult[0][0].json.operation, 'addWebhook');
+		assert.equal(
+			privateWithoutApiKeyContinueResult[0][0].json.resource,
+			getResource('addWebhook'),
+		);
+		assert.equal(
+			privateWithoutApiKeyContinueResult[0][0].json.error.code,
+			'UNKNOWN_ERROR',
+		);
+
 		const createWebhookContext = createExecutionContext(
 			{
 				resource: getResource('addWebhook'),
@@ -366,7 +539,26 @@ async function main() {
 			credentials,
 		);
 		const webhookResult = await azuraCastNode.execute.call(createWebhookContext);
-		assert.equal(webhookResult[0][0].json.created, true);
+		assert.equal(webhookResult[0][0].json.success, true);
+		assert.equal(webhookResult[0][0].json.data.created, true);
+
+		const deleteWebhookContext = createExecutionContext(
+			{
+				resource: getResource('deleteWebhook'),
+				operation: 'deleteWebhook',
+				path__deletewebhook__station_id: { mode: 'list', value: 'demo' },
+				path__deletewebhook__id: { mode: 'list', value: 1 },
+				sendQueryParameters: false,
+				bodyMode: 'none',
+				sendAdditionalHeaders: false,
+				responseFormat: 'auto',
+				returnFullResponse: false,
+			},
+			credentials,
+		);
+		const deleteWebhookResult = await azuraCastNode.execute.call(deleteWebhookContext);
+		assert.equal(deleteWebhookResult[0].length, 1);
+		assert.equal(deleteWebhookResult[0][0].json.success, true);
 
 		const multipartContext = createExecutionContext(
 			{
@@ -394,7 +586,8 @@ async function main() {
 			},
 		);
 		const multipartResult = await azuraCastNode.execute.call(multipartContext);
-		assert.equal(multipartResult[0][0].json.uploaded, true);
+		assert.equal(multipartResult[0][0].json.success, true);
+		assert.equal(multipartResult[0][0].json.data.uploaded, true);
 
 		const binaryContext = createExecutionContext(
 			{
@@ -411,6 +604,7 @@ async function main() {
 			credentials,
 		);
 		const binaryResult = await azuraCastNode.execute.call(binaryContext);
+		assert.equal(binaryResult[0][0].json.success, true);
 		assert.ok(binaryResult[0][0].binary.audio.data);
 
 		const webhookRequest = [...mock.requests].reverse().find(
