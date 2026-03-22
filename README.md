@@ -194,6 +194,12 @@ Versioning:
 
 ## Version history
 
+### 0.1.7
+
+- Added explicit required `Email` input for **Administration General → Send Test Email**
+- Added runtime metadata override for AzuraCast `adminSendTestEmail` to send `email` in request body
+- Expanded local simulation to validate `Send Test Email` payload handling
+
 ### 0.1.6
 
 - Standardized successful delete action output to `{ deleted: true }`

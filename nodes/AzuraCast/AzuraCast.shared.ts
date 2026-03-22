@@ -111,8 +111,64 @@ type LocatorConfig = {
 	idPlaceholder: string;
 };
 
-const snapshot = azuraCastOpenApiSnapshot as AzuraCastSnapshotData;
+const rawSnapshot = azuraCastOpenApiSnapshot as AzuraCastSnapshotData;
 const credentialTypeName = 'renebelloAzuraCastApi';
+
+const operationMetadataOverrides: Record<string, Partial<AzuraCastSnapshotOperation>> = {
+	adminSendTestEmail: {
+		requestBodyRequired: true,
+		requestBodyContentTypes: ['application/json'],
+		requestBodyPreferredContentType: 'application/json',
+		requestBodyFieldDefinitions: [
+			{
+				name: 'email',
+				type: 'string',
+				format: 'email',
+				description: 'Recipient email address for the test message.',
+				required: true,
+				enumValues: [],
+				enumValueType: '',
+			},
+		],
+		recommendedBodyMode: 'json',
+	},
+};
+
+function applySnapshotMetadataOverrides(source: AzuraCastSnapshotData): AzuraCastSnapshotData {
+	const operations = source.operations.map((operation) => {
+		const override = operationMetadataOverrides[operation.id];
+		if (!override) {
+			return operation;
+		}
+		const mergedOperation: AzuraCastSnapshotOperation = {
+			...operation,
+			...override,
+		};
+		if (override.pathParameterDefinitions !== undefined) {
+			mergedOperation.pathParameterDefinitions = [...override.pathParameterDefinitions];
+		}
+		if (override.queryParameterDefinitions !== undefined) {
+			mergedOperation.queryParameterDefinitions = [...override.queryParameterDefinitions];
+		}
+		if (override.requestBodyFieldDefinitions !== undefined) {
+			mergedOperation.requestBodyFieldDefinitions = [...override.requestBodyFieldDefinitions];
+		}
+		if (override.requestBodyContentTypes !== undefined) {
+			mergedOperation.requestBodyContentTypes = [...override.requestBodyContentTypes];
+		}
+		if (override.responseContentTypes !== undefined) {
+			mergedOperation.responseContentTypes = [...override.responseContentTypes];
+		}
+		return mergedOperation;
+	});
+	return {
+		...source,
+		operations,
+		operationMap: Object.fromEntries(operations.map((operation) => [operation.id, operation])),
+	};
+}
+
+const snapshot = applySnapshotMetadataOverrides(rawSnapshot);
 
 function isObject(value: unknown): value is IDataObject {
 	return value !== null && typeof value === 'object' && !Array.isArray(value);

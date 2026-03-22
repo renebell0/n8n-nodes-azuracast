@@ -96,6 +96,30 @@ async function startMockServer() {
 				return;
 			}
 
+			if (req.method === 'POST' && requestUrl.pathname === '/api/admin/send-test-message') {
+				if (!hasValidAuth) {
+					res.writeHead(401, { 'content-type': 'application/json' });
+					res.end(JSON.stringify({ error: 'Unauthorized' }));
+					return;
+				}
+				const emailAddress =
+					parsedBody && typeof parsedBody === 'object'
+						? String(parsedBody.email ?? '').trim()
+						: '';
+				if (!emailAddress) {
+					res.writeHead(400, { 'content-type': 'application/json' });
+					res.end(
+						JSON.stringify({
+							error: 'Email "" does not comply with addr-spec of RFC 2822.',
+						}),
+					);
+					return;
+				}
+				res.writeHead(200, { 'content-type': 'application/json' });
+				res.end(JSON.stringify({ success: true, message: 'Test message sent successfully.' }));
+				return;
+			}
+
 			if (req.method === 'DELETE' && requestUrl.pathname === '/api/station/demo/webhook/1') {
 				if (!hasValidAuth) {
 					res.writeHead(401, { 'content-type': 'application/json' });
@@ -542,6 +566,21 @@ async function main() {
 		assert.equal(webhookResult[0][0].json.success, true);
 		assert.equal(webhookResult[0][0].json.data.created, true);
 
+		const sendTestEmailContext = createExecutionContext(
+			{
+				resource: getResource('adminSendTestEmail'),
+				operation: 'adminSendTestEmail',
+				body_required__adminsendtestemail__email: 'ops@example.com',
+				sendAdditionalHeaders: false,
+				responseFormat: 'auto',
+				returnFullResponse: false,
+			},
+			credentials,
+		);
+		const sendTestEmailResult = await azuraCastNode.execute.call(sendTestEmailContext);
+		assert.equal(sendTestEmailResult[0][0].json.success, true);
+		assert.equal(sendTestEmailResult[0][0].json.data.success, true);
+
 		const deleteWebhookContext = createExecutionContext(
 			{
 				resource: getResource('deleteWebhook'),
@@ -612,6 +651,12 @@ async function main() {
 		);
 		assert.ok(webhookRequest);
 		assert.equal(webhookRequest.headers['x-api-key'], 'test-key');
+
+		const sendTestEmailRequest = [...mock.requests].reverse().find(
+			(request) => request.method === 'POST' && request.pathname === '/api/admin/send-test-message',
+		);
+		assert.ok(sendTestEmailRequest);
+		assert.equal(sendTestEmailRequest.body.email, 'ops@example.com');
 
 		const multipartRequest = mock.requests.find(
 			(request) =>

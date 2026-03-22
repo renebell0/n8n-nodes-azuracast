@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-03-22
+
+- Added explicit `email` body field metadata for `adminSendTestEmail` (`POST /admin/send-test-message`)
+- Marked `Send Test Email` email input as required in node UI
+- Added local simulation coverage to verify `adminSendTestEmail` request payload handling
+
 ## [0.1.6] - 2026-03-21
 
 - Standardized successful delete action output to `{ deleted: true }`
