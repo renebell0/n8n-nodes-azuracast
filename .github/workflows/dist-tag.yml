@@ -1,0 +1,34 @@
+name: NPM Dist Tag
+
+on:
+  workflow_dispatch:
+    inputs:
+      package_version:
+        description: Published package version to assign
+        required: true
+        default: '0.1.6'
+      npm_tag:
+        description: Dist-tag name
+        required: true
+        default: latest
+
+jobs:
+  set-dist-tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+    steps:
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm whoami
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: npm dist-tag add @renebello/n8n-nodes-azuracast@${{ inputs.package_version }} ${{ inputs.npm_tag }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: npm view @renebello/n8n-nodes-azuracast dist-tags --json
+
