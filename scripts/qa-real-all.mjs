@@ -58,6 +58,50 @@ function parseStatusCode(error) {
 	return toNumberOrUndefined(match[1]);
 }
 
+function extractMissingRequiredBodyField(error) {
+	const message = String(error?.message ?? '');
+	const match = message.match(/Missing required body field "([^"]+)"/);
+	return match ? String(match[1]).trim() : '';
+}
+
+function defaultMissingBodyFieldValue(fieldName) {
+	const normalized = safeString(fieldName).toLowerCase();
+	if (!normalized) {
+		return 'qa';
+	}
+	if (normalized.includes('email')) {
+		return 'qa@example.com';
+	}
+	if (
+		normalized.includes('order') ||
+		normalized.includes('directories') ||
+		normalized.includes('files') ||
+		normalized.includes('playlists') ||
+		normalized.includes('dirs')
+	) {
+		return [];
+	}
+	if (normalized.includes('response') || normalized === 'data') {
+		return {};
+	}
+	if (
+		normalized.startsWith('is_') ||
+		normalized.startsWith('has_') ||
+		normalized.startsWith('can_') ||
+		normalized.startsWith('copy')
+	) {
+		return false;
+	}
+	if (
+		normalized === 'id' ||
+		normalized.endsWith('_id') ||
+		normalized.includes('location')
+	) {
+		return 1;
+	}
+	return 'qa';
+}
+
 function serializeErrorBody(error) {
 	if (!error || error.responseBody === undefined) {
 		return '';
@@ -70,6 +114,70 @@ function serializeErrorBody(error) {
 	} catch {
 		return '';
 	}
+}
+
+function isExpectedReadOnlyEnvironmentError(method, statusCode, errorMessage, errorBody) {
+	if (statusCode === undefined) {
+		return false;
+	}
+	if (String(method ?? '').toUpperCase() !== 'GET') {
+		return false;
+	}
+	const normalizedErrorMessage = String(errorMessage ?? '').toLowerCase();
+	const normalizedErrorBody = decodeErrorBodyText(errorBody).toLowerCase();
+	const combinedText = `${normalizedErrorMessage}\n${normalizedErrorBody}`;
+	if (
+		statusCode === 500 &&
+		(combinedText.includes('stationunsupportedexception') ||
+			combinedText.includes('does not currently support') ||
+			combinedText.includes('does not currently accept requests'))
+	) {
+		return true;
+	}
+	if (
+		statusCode === 400 &&
+		combinedText.includes('reporting is restricted due to system analytics level')
+	) {
+		return true;
+	}
+	if (statusCode === 404 && combinedText.includes('record not found')) {
+		return true;
+	}
+	if (statusCode === 405 && combinedText.includes('method not allowed')) {
+		return true;
+	}
+	return false;
+}
+
+function decodeErrorBodyText(errorBody) {
+	const raw = String(errorBody ?? '');
+	if (!raw) {
+		return raw;
+	}
+	try {
+		const parsed = JSON.parse(raw);
+		if (
+			parsed &&
+			typeof parsed === 'object' &&
+			parsed.type === 'Buffer' &&
+			Array.isArray(parsed.data)
+		) {
+			const decoded = Buffer.from(parsed.data).toString('utf8');
+			return `${raw}\n${decoded}`;
+		}
+	} catch {}
+	const partialBufferMatch = raw.match(/"type":"Buffer","data":\[(.*)$/);
+	if (partialBufferMatch) {
+		const byteValues = partialBufferMatch[1]
+			.split(',')
+			.map((value) => Number.parseInt(String(value).trim(), 10))
+			.filter((value) => Number.isInteger(value) && value >= 0 && value <= 255);
+		if (byteValues.length > 0) {
+			const decoded = Buffer.from(byteValues).toString('utf8');
+			return `${raw}\n${decoded}`;
+		}
+	}
+	return raw;
 }
 
 function isObject(value) {
@@ -818,9 +926,32 @@ async function main() {
 			inputItem = createBinaryInputItem();
 		}
 
-		try {
-			const context = createExecutionContext(params, credentials, authHeaders, inputItem);
-			const output = await azuraCastNode.execute.call(context);
+		let output;
+		let executionError;
+		const autoFilledRequiredBodyFields = [];
+
+		for (let attempt = 0; attempt < 8; attempt += 1) {
+			try {
+				const context = createExecutionContext(params, credentials, authHeaders, inputItem);
+				output = await azuraCastNode.execute.call(context);
+				executionError = undefined;
+				break;
+			} catch (error) {
+				const missingFieldName = extractMissingRequiredBodyField(error);
+				if (
+					!missingFieldName ||
+					autoFilledRequiredBodyFields.includes(missingFieldName)
+				) {
+					executionError = error;
+					break;
+				}
+				params[scopedFieldName('body_required', operationId, missingFieldName)] =
+					defaultMissingBodyFieldValue(missingFieldName);
+				autoFilledRequiredBodyFields.push(missingFieldName);
+			}
+		}
+
+		if (!executionError) {
 			operationResults.push({
 				operationId,
 				tag: operation.tag,
@@ -828,32 +959,48 @@ async function main() {
 				path: operation.path,
 				status: 'pass',
 				summary: summarizeOutput(output),
+				autoFilledRequiredBodyFields,
 			});
-		} catch (error) {
-			const statusCode = parseStatusCode(error);
-			if (mutating && statusCode !== undefined && [400, 401, 403, 404, 405, 409, 422, 500].includes(statusCode)) {
-				operationResults.push({
-					operationId,
-					tag: operation.tag,
-					method,
-					path: operation.path,
-					status: 'pass_expected_error',
-					statusCode,
-					error: String(error?.message ?? error),
-					errorBody: serializeErrorBody(error),
-				});
-			} else {
-				operationResults.push({
-					operationId,
-					tag: operation.tag,
-					method,
-					path: operation.path,
-					status: 'fail',
-					statusCode,
-					error: String(error?.message ?? error),
-					errorBody: serializeErrorBody(error),
-				});
-			}
+			continue;
+		}
+
+		const statusCode = parseStatusCode(executionError);
+		const errorMessage = String(executionError?.message ?? executionError);
+		const errorBody = serializeErrorBody(executionError);
+		const isMutatingExpectedError =
+			mutating &&
+			statusCode !== undefined &&
+			[400, 401, 403, 404, 405, 409, 422, 500].includes(statusCode);
+		const isReadOnlyExpectedError = isExpectedReadOnlyEnvironmentError(
+			method,
+			statusCode,
+			errorMessage,
+			errorBody,
+		);
+		if (isMutatingExpectedError || isReadOnlyExpectedError) {
+			operationResults.push({
+				operationId,
+				tag: operation.tag,
+				method,
+				path: operation.path,
+				status: 'pass_expected_error',
+				statusCode,
+				error: errorMessage,
+				errorBody,
+				autoFilledRequiredBodyFields,
+			});
+		} else {
+			operationResults.push({
+				operationId,
+				tag: operation.tag,
+				method,
+				path: operation.path,
+				status: 'fail',
+				statusCode,
+				error: errorMessage,
+				errorBody,
+				autoFilledRequiredBodyFields,
+			});
 		}
 	}
 

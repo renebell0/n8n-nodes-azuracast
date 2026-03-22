@@ -30,6 +30,7 @@ type AzuraCastSnapshotFieldDefinition = {
 	required: boolean;
 	enumValues: Array<boolean | number | string>;
 	enumValueType: SnapshotEnumValueType;
+	typeOptions?: IDataObject;
 };
 
 type AzuraCastSnapshotOperation = {
@@ -126,6 +127,309 @@ const operationMetadataOverrides: Record<string, Partial<AzuraCastSnapshotOperat
 				format: 'email',
 				description: 'Recipient email address for the test message.',
 				required: true,
+				enumValues: [],
+				enumValueType: '',
+			},
+		],
+		recommendedBodyMode: 'json',
+	},
+	postStationFilesMkdir: {
+		requestBodyRequired: true,
+		requestBodyContentTypes: ['application/json'],
+		requestBodyPreferredContentType: 'application/json',
+		requestBodyFieldDefinitions: [
+			{
+				name: 'currentDirectory',
+				type: 'string',
+				format: '',
+				description: 'Current media directory path.',
+				required: false,
+				enumValues: [],
+				enumValueType: '',
+			},
+			{
+				name: 'name',
+				type: 'string',
+				format: '',
+				description: 'Name of the directory to create.',
+				required: true,
+				enumValues: [],
+				enumValueType: '',
+			},
+		],
+		recommendedBodyMode: 'json',
+	},
+	postStationFilesRename: {
+		requestBodyRequired: true,
+		requestBodyContentTypes: ['application/json'],
+		requestBodyPreferredContentType: 'application/json',
+		requestBodyFieldDefinitions: [
+			{
+				name: 'file',
+				type: 'string',
+				format: '',
+				description: 'Current file path to rename.',
+				required: true,
+				enumValues: [],
+				enumValueType: '',
+			},
+			{
+				name: 'newPath',
+				type: 'string',
+				format: '',
+				description: 'New file path.',
+				required: true,
+				enumValues: [],
+				enumValueType: '',
+			},
+		],
+		recommendedBodyMode: 'json',
+	},
+	putAdminDebugTelnetCommand: {
+		requestBodyRequired: true,
+		requestBodyContentTypes: ['application/json'],
+		requestBodyPreferredContentType: 'application/json',
+		requestBodyFieldDefinitions: [
+			{
+				name: 'command',
+				type: 'string',
+				format: '',
+				description: 'Telnet command to run on the station backend.',
+				required: true,
+				enumValues: [],
+				enumValueType: '',
+			},
+		],
+		recommendedBodyMode: 'json',
+	},
+	putStationFileBatchAction: {
+		requestBodyRequired: true,
+		requestBodyContentTypes: ['application/json'],
+		requestBodyPreferredContentType: 'application/json',
+		requestBodyFieldDefinitions: [
+			{
+				name: 'do',
+				type: 'options',
+				format: '',
+				description: 'Batch action to perform.',
+				required: true,
+				enumValues: ['delete', 'playlist', 'move', 'queue', 'immediate', 'reprocess', 'clear-extra'],
+				enumValueType: 'string',
+			},
+			{
+				name: 'files',
+				type: 'json',
+				format: 'array',
+				description: 'List of file paths to include in the batch action.',
+				required: false,
+				enumValues: [],
+				enumValueType: '',
+			},
+			{
+				name: 'dirs',
+				type: 'json',
+				format: 'array',
+				description: 'List of directory paths to include in the batch action.',
+				required: false,
+				enumValues: [],
+				enumValueType: '',
+			},
+			{
+				name: 'playlists',
+				type: 'json',
+				format: 'array',
+				description: 'Playlist IDs to use when batch action is playlist.',
+				required: false,
+				enumValues: [],
+				enumValueType: '',
+			},
+			{
+				name: 'new_playlist_name',
+				type: 'string',
+				format: '',
+				description: 'Name of the new playlist when using playlists=["new"].',
+				required: false,
+				enumValues: [],
+				enumValueType: '',
+			},
+			{
+				name: 'currentDirectory',
+				type: 'string',
+				format: '',
+				description: 'Current directory path when using move action.',
+				required: false,
+				enumValues: [],
+				enumValueType: '',
+			},
+			{
+				name: 'directory',
+				type: 'string',
+				format: '',
+				description: 'Target directory path when using move action.',
+				required: false,
+				enumValues: [],
+				enumValueType: '',
+			},
+		],
+		recommendedBodyMode: 'json',
+	},
+	putStationPlaylistOrder: {
+		requestBodyRequired: true,
+		requestBodyContentTypes: ['application/json'],
+		requestBodyPreferredContentType: 'application/json',
+		requestBodyFieldDefinitions: [
+			{
+				name: 'order',
+				type: 'json',
+				format: 'array',
+				description: 'Sequential playlist media order array.',
+				required: true,
+				enumValues: [],
+				enumValueType: '',
+			},
+		],
+		recommendedBodyMode: 'json',
+	},
+	postAdminDoBackup: {
+		requestBodyRequired: false,
+		requestBodyContentTypes: ['application/json'],
+		requestBodyPreferredContentType: 'application/json',
+		requestBodyFieldDefinitions: [
+			{
+				name: 'storage_location',
+				type: 'number',
+				format: 'int64',
+				description: 'Storage location ID where the backup will be stored.',
+				required: false,
+				enumValues: [],
+				enumValueType: '',
+			},
+			{
+				name: 'path',
+				type: 'string',
+				format: '',
+				description: 'Custom backup filename or path.',
+				required: false,
+				enumValues: [],
+				enumValueType: '',
+			},
+			{
+				name: 'exclude_media',
+				type: 'boolean',
+				format: '',
+				description: 'Whether media files should be excluded from the backup.',
+				required: false,
+				enumValues: [],
+				enumValueType: '',
+			},
+		],
+		recommendedBodyMode: 'json',
+	},
+	postStationMediaWaveform: {
+		requestBodyRequired: true,
+		requestBodyContentTypes: ['application/json'],
+		requestBodyPreferredContentType: 'application/json',
+		requestBodyFieldDefinitions: [
+			{
+				name: 'data',
+				type: 'json',
+				format: 'object',
+				description: 'Waveform payload object containing the cue data array.',
+				required: true,
+				enumValues: [],
+				enumValueType: '',
+			},
+		],
+		recommendedBodyMode: 'json',
+	},
+	putAccountTwoFactor: {
+		requestBodyRequired: false,
+		requestBodyContentTypes: ['application/json'],
+		requestBodyPreferredContentType: 'application/json',
+		requestBodyFieldDefinitions: [
+			{
+				name: 'secret',
+				type: 'string',
+				format: '',
+				description: 'Optional existing TOTP secret. If omitted, AzuraCast generates one.',
+				required: false,
+				enumValues: [],
+				enumValueType: '',
+				typeOptions: {
+					password: true,
+				},
+			},
+			{
+				name: 'otp',
+				type: 'string',
+				format: '',
+				description: 'One-time password from your authenticator app to confirm registration.',
+				required: false,
+				enumValues: [],
+				enumValueType: '',
+			},
+		],
+		recommendedBodyMode: 'json',
+	},
+	putAccountWebAuthnRegister: {
+		requestBodyRequired: true,
+		requestBodyContentTypes: ['application/json'],
+		requestBodyPreferredContentType: 'application/json',
+		requestBodyFieldDefinitions: [
+			{
+				name: 'createResponse',
+				type: 'json',
+				format: 'object',
+				description:
+					'WebAuthn registration response object containing clientDataJSON and attestationObject.',
+				required: true,
+				enumValues: [],
+				enumValueType: '',
+			},
+			{
+				name: 'name',
+				type: 'string',
+				format: '',
+				description: 'Optional display name for the new passkey.',
+				required: false,
+				enumValues: [],
+				enumValueType: '',
+			},
+		],
+		recommendedBodyMode: 'json',
+	},
+	putMe: {
+		requestBodyRequired: false,
+		requestBodyContentTypes: ['application/json'],
+		requestBodyPreferredContentType: 'application/json',
+		recommendedBodyMode: 'json',
+	},
+	putStationLiquidsoapConfig: {
+		requestBodyRequired: false,
+		requestBodyContentTypes: ['application/json'],
+		requestBodyPreferredContentType: 'application/json',
+		recommendedBodyMode: 'json',
+	},
+	putStationPlaylistApplyTo: {
+		requestBodyRequired: false,
+		requestBodyContentTypes: ['application/json'],
+		requestBodyPreferredContentType: 'application/json',
+		requestBodyFieldDefinitions: [
+			{
+				name: 'copyPlaylist',
+				type: 'boolean',
+				format: '',
+				description: 'Whether to clone the playlist for each target directory.',
+				required: false,
+				enumValues: [],
+				enumValueType: '',
+			},
+			{
+				name: 'directories',
+				type: 'json',
+				format: 'array',
+				description: 'Array of directory paths where the playlist should be applied.',
+				required: false,
 				enumValues: [],
 				enumValueType: '',
 			},
@@ -1275,6 +1579,24 @@ function createResourceLocatorPathProperty(
 	};
 }
 
+function getFieldTypeOptions(fieldDefinition: AzuraCastSnapshotFieldDefinition): IDataObject | undefined {
+	const explicitTypeOptions = isObject(fieldDefinition.typeOptions)
+		? ({ ...fieldDefinition.typeOptions } as IDataObject)
+		: undefined;
+	if (mapFieldToNodeType(fieldDefinition) !== 'string') {
+		return explicitTypeOptions;
+	}
+	const normalizedFieldName = String(fieldDefinition.name ?? '').toLowerCase();
+	const sensitiveFieldNamePattern = /(secret|password|token|api[_-]?key|access[_-]?key|private[_-]?key)/;
+	if (!sensitiveFieldNamePattern.test(normalizedFieldName)) {
+		return explicitTypeOptions;
+	}
+	return {
+		...(explicitTypeOptions ?? {}),
+		password: true,
+	};
+}
+
 function createRequiredFieldProperty(
 	fieldDefinition: AzuraCastSnapshotFieldDefinition,
 	propertyName: string,
@@ -1295,6 +1617,10 @@ function createRequiredFieldProperty(
 		property.options = buildOptionsValues(fieldDefinition);
 		property.noDataExpression = true;
 	}
+	const typeOptions = getFieldTypeOptions(fieldDefinition);
+	if (typeOptions) {
+		property.typeOptions = typeOptions;
+	}
 	return property;
 }
 
@@ -1313,6 +1639,10 @@ function createOptionalCollectionField(
 	if (type === 'options') {
 		property.options = buildOptionsValues(fieldDefinition);
 		property.noDataExpression = true;
+	}
+	const typeOptions = getFieldTypeOptions(fieldDefinition);
+	if (typeOptions) {
+		property.typeOptions = typeOptions;
 	}
 	return property;
 }

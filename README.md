@@ -194,9 +194,16 @@ Versioning:
 
 ## Version history
 
+### 0.1.8
+
+- Added explicit body-field UX for AzuraCast actions with missing request schema in OpenAPI, including file management, backups, waveform cache, account security, and playlist apply actions
+- Added Auto-mode JSON request body support for actions that require free-form JSON payloads (`putMe`, `putStationLiquidsoapConfig`)
+- Added masked input rendering for sensitive fields such as `secret`
+- Expanded local simulation and real QA tooling to validate these payload mappings and classify environment-limited read-only errors correctly
+
 ### 0.1.7
 
-- Added explicit required `Email` input for **Administration General → Send Test Email**
+- Fixed **Administration General → Send Test Email** by exposing required `Email` input
 - Added runtime metadata override for AzuraCast `adminSendTestEmail` to send `email` in request body
 - Expanded local simulation to validate `Send Test Email` payload handling
 

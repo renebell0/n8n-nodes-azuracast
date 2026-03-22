@@ -4,6 +4,28 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-03-22
+
+- Added runtime metadata overrides for AzuraCast actions missing request body schema in OpenAPI
+- Added explicit body field UX for:
+  - `adminSendTestEmail`
+  - `postStationFilesMkdir`
+  - `postStationFilesRename`
+  - `putAdminDebugTelnetCommand`
+  - `putStationFileBatchAction`
+  - `putStationPlaylistOrder`
+  - `postAdminDoBackup`
+  - `postStationMediaWaveform`
+  - `putAccountTwoFactor`
+  - `putAccountWebAuthnRegister`
+  - `putStationPlaylistApplyTo`
+- Added JSON body input support in Auto mode for:
+  - `putMe`
+  - `putStationLiquidsoapConfig`
+- Enforced masked input rendering for sensitive fields (for example `secret`)
+- Expanded local simulation coverage for all new request-body overrides
+- Improved real QA runner to auto-fill missing required body fields during test execution and classify known environment-limited read errors as expected
+
 ## [0.1.7] - 2026-03-22
 
 - Added explicit `email` body field metadata for `adminSendTestEmail` (`POST /admin/send-test-message`)

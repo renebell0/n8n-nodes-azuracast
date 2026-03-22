@@ -120,6 +120,240 @@ async function startMockServer() {
 				return;
 			}
 
+			if (req.method === 'POST' && requestUrl.pathname === '/api/station/demo/files/mkdir') {
+				if (!hasValidAuth) {
+					res.writeHead(401, { 'content-type': 'application/json' });
+					res.end(JSON.stringify({ error: 'Unauthorized' }));
+					return;
+				}
+				const directoryName =
+					parsedBody && typeof parsedBody === 'object'
+						? String(parsedBody.name ?? '').trim()
+						: '';
+				if (!directoryName) {
+					res.writeHead(400, { 'content-type': 'application/json' });
+					res.end(JSON.stringify({ error: 'No directory specified' }));
+					return;
+				}
+				res.writeHead(200, { 'content-type': 'application/json' });
+				res.end(JSON.stringify({ success: true }));
+				return;
+			}
+
+			if (req.method === 'PUT' && requestUrl.pathname === '/api/station/demo/files/rename') {
+				if (!hasValidAuth) {
+					res.writeHead(401, { 'content-type': 'application/json' });
+					res.end(JSON.stringify({ error: 'Unauthorized' }));
+					return;
+				}
+				const fromPath =
+					parsedBody && typeof parsedBody === 'object'
+						? String(parsedBody.file ?? '').trim()
+						: '';
+				const toPath =
+					parsedBody && typeof parsedBody === 'object'
+						? String(parsedBody.newPath ?? '').trim()
+						: '';
+				if (!fromPath || !toPath) {
+					res.writeHead(400, { 'content-type': 'application/json' });
+					res.end(JSON.stringify({ error: 'File not specified.' }));
+					return;
+				}
+				res.writeHead(200, { 'content-type': 'application/json' });
+				res.end(JSON.stringify({ success: true }));
+				return;
+			}
+
+			if (req.method === 'PUT' && requestUrl.pathname === '/api/admin/debug/station/demo/telnet') {
+				if (!hasValidAuth) {
+					res.writeHead(401, { 'content-type': 'application/json' });
+					res.end(JSON.stringify({ error: 'Unauthorized' }));
+					return;
+				}
+				const commandValue =
+					parsedBody && typeof parsedBody === 'object'
+						? String(parsedBody.command ?? '').trim()
+						: '';
+				if (!commandValue) {
+					res.writeHead(400, { 'content-type': 'application/json' });
+					res.end(JSON.stringify({ error: 'Command is required.' }));
+					return;
+				}
+				res.writeHead(200, { 'content-type': 'application/json' });
+				res.end(JSON.stringify({ success: true, command: commandValue }));
+				return;
+			}
+
+			if (req.method === 'PUT' && requestUrl.pathname === '/api/station/demo/playlist/11/order') {
+				if (!hasValidAuth) {
+					res.writeHead(401, { 'content-type': 'application/json' });
+					res.end(JSON.stringify({ error: 'Unauthorized' }));
+					return;
+				}
+				const orderValue =
+					parsedBody && typeof parsedBody === 'object' && Array.isArray(parsedBody.order)
+						? parsedBody.order
+						: null;
+				if (!orderValue) {
+					res.writeHead(400, { 'content-type': 'application/json' });
+					res.end(JSON.stringify({ error: 'Order is required.' }));
+					return;
+				}
+				res.writeHead(200, { 'content-type': 'application/json' });
+				res.end(JSON.stringify(orderValue));
+				return;
+			}
+
+			if (req.method === 'PUT' && requestUrl.pathname === '/api/station/demo/files/batch') {
+				if (!hasValidAuth) {
+					res.writeHead(401, { 'content-type': 'application/json' });
+					res.end(JSON.stringify({ error: 'Unauthorized' }));
+					return;
+				}
+				const batchAction =
+					parsedBody && typeof parsedBody === 'object'
+						? String(parsedBody.do ?? '').trim()
+						: '';
+				if (!batchAction) {
+					res.writeHead(400, { 'content-type': 'application/json' });
+					res.end(JSON.stringify({ error: 'Invalid batch action specified.' }));
+					return;
+				}
+				res.writeHead(200, { 'content-type': 'application/json' });
+				res.end(JSON.stringify({ success: true, action: batchAction }));
+				return;
+			}
+
+			if (req.method === 'POST' && requestUrl.pathname === '/api/admin/backups/run') {
+				if (!hasValidAuth) {
+					res.writeHead(401, { 'content-type': 'application/json' });
+					res.end(JSON.stringify({ error: 'Unauthorized' }));
+					return;
+				}
+				res.writeHead(200, { 'content-type': 'application/json' });
+				res.end(
+					JSON.stringify({
+						success: true,
+						storage_location:
+							parsedBody && typeof parsedBody === 'object'
+								? parsedBody.storage_location ?? null
+								: null,
+					}),
+				);
+				return;
+			}
+
+			if (req.method === 'POST' && requestUrl.pathname === '/api/station/demo/waveform/1') {
+				if (!hasValidAuth) {
+					res.writeHead(401, { 'content-type': 'application/json' });
+					res.end(JSON.stringify({ error: 'Unauthorized' }));
+					return;
+				}
+				const hasWaveformData =
+					parsedBody &&
+					typeof parsedBody === 'object' &&
+					parsedBody.data !== undefined &&
+					parsedBody.data !== null;
+				if (!hasWaveformData) {
+					res.writeHead(400, { 'content-type': 'application/json' });
+					res.end(JSON.stringify({ error: 'No waveform data provided.' }));
+					return;
+				}
+				res.writeHead(200, { 'content-type': 'application/json' });
+				res.end(JSON.stringify({ success: true, cached: true }));
+				return;
+			}
+
+			if (req.method === 'PUT' && requestUrl.pathname === '/api/frontend/account/two-factor') {
+				if (!hasValidAuth) {
+					res.writeHead(401, { 'content-type': 'application/json' });
+					res.end(JSON.stringify({ error: 'Unauthorized' }));
+					return;
+				}
+				const otpValue =
+					parsedBody && typeof parsedBody === 'object'
+						? String(parsedBody.otp ?? '').trim()
+						: '';
+				res.writeHead(200, { 'content-type': 'application/json' });
+				if (!otpValue) {
+					res.end(
+						JSON.stringify({
+							secret: 'GENERATEDSECRET',
+							totp_uri: 'otpauth://totp/AzuraCast:test?secret=GENERATEDSECRET',
+						}),
+					);
+					return;
+				}
+				res.end(JSON.stringify({ success: true }));
+				return;
+			}
+
+			if (req.method === 'PUT' && requestUrl.pathname === '/api/frontend/account/webauthn/register') {
+				if (!hasValidAuth) {
+					res.writeHead(401, { 'content-type': 'application/json' });
+					res.end(JSON.stringify({ error: 'Unauthorized' }));
+					return;
+				}
+				const createResponse =
+					parsedBody && typeof parsedBody === 'object' && parsedBody.createResponse
+						? parsedBody.createResponse
+						: null;
+				const hasRequiredFields =
+					createResponse &&
+					typeof createResponse === 'object' &&
+					String(createResponse.clientDataJSON ?? '').trim() !== '' &&
+					String(createResponse.attestationObject ?? '').trim() !== '';
+				if (!hasRequiredFields) {
+					res.writeHead(400, { 'content-type': 'application/json' });
+					res.end(JSON.stringify({ error: 'Invalid WebAuthn payload.' }));
+					return;
+				}
+				res.writeHead(200, { 'content-type': 'application/json' });
+				res.end(JSON.stringify({ success: true }));
+				return;
+			}
+
+			if (req.method === 'PUT' && requestUrl.pathname === '/api/frontend/account/me') {
+				if (!hasValidAuth) {
+					res.writeHead(401, { 'content-type': 'application/json' });
+					res.end(JSON.stringify({ error: 'Unauthorized' }));
+					return;
+				}
+				res.writeHead(200, { 'content-type': 'application/json' });
+				res.end(JSON.stringify({ success: true, updated: true, body: parsedBody }));
+				return;
+			}
+
+			if (req.method === 'PUT' && requestUrl.pathname === '/api/station/demo/liquidsoap-config') {
+				if (!hasValidAuth) {
+					res.writeHead(401, { 'content-type': 'application/json' });
+					res.end(JSON.stringify({ error: 'Unauthorized' }));
+					return;
+				}
+				res.writeHead(200, { 'content-type': 'application/json' });
+				res.end(JSON.stringify({ success: true, updated: true }));
+				return;
+			}
+
+			if (req.method === 'PUT' && requestUrl.pathname === '/api/station/demo/playlist/11/apply-to') {
+				if (!hasValidAuth) {
+					res.writeHead(401, { 'content-type': 'application/json' });
+					res.end(JSON.stringify({ error: 'Unauthorized' }));
+					return;
+				}
+				res.writeHead(200, { 'content-type': 'application/json' });
+				res.end(
+					JSON.stringify({
+						success: true,
+						directories:
+							parsedBody && typeof parsedBody === 'object' && Array.isArray(parsedBody.directories)
+								? parsedBody.directories
+								: [],
+					}),
+				);
+				return;
+			}
+
 			if (req.method === 'DELETE' && requestUrl.pathname === '/api/station/demo/webhook/1') {
 				if (!hasValidAuth) {
 					res.writeHead(401, { 'content-type': 'application/json' });
@@ -581,6 +815,236 @@ async function main() {
 		assert.equal(sendTestEmailResult[0][0].json.success, true);
 		assert.equal(sendTestEmailResult[0][0].json.data.success, true);
 
+		const makeDirectoryContext = createExecutionContext(
+			{
+				resource: getResource('postStationFilesMkdir'),
+				operation: 'postStationFilesMkdir',
+				path__poststationfilesmkdir__station_id: { mode: 'list', value: 'demo' },
+				body_required__poststationfilesmkdir__name: 'new-folder',
+				body_optional__poststationfilesmkdir: {
+					currentDirectory: 'music',
+				},
+				sendAdditionalHeaders: false,
+				responseFormat: 'auto',
+				returnFullResponse: false,
+			},
+			credentials,
+		);
+		const makeDirectoryResult = await azuraCastNode.execute.call(makeDirectoryContext);
+		assert.equal(makeDirectoryResult[0][0].json.success, true);
+		assert.equal(makeDirectoryResult[0][0].json.data.success, true);
+
+		const renameFileContext = createExecutionContext(
+			{
+				resource: getResource('postStationFilesRename'),
+				operation: 'postStationFilesRename',
+				path__poststationfilesrename__station_id: { mode: 'list', value: 'demo' },
+				body_required__poststationfilesrename__file: 'music/old.mp3',
+				body_required__poststationfilesrename__newpath: 'music/new.mp3',
+				sendAdditionalHeaders: false,
+				responseFormat: 'auto',
+				returnFullResponse: false,
+			},
+			credentials,
+		);
+		const renameFileResult = await azuraCastNode.execute.call(renameFileContext);
+		assert.equal(renameFileResult[0][0].json.success, true);
+		assert.equal(renameFileResult[0][0].json.data.success, true);
+
+		const telnetCommandContext = createExecutionContext(
+			{
+				resource: getResource('putAdminDebugTelnetCommand'),
+				operation: 'putAdminDebugTelnetCommand',
+				path__putadmindebugtelnetcommand__station_id: { mode: 'list', value: 'demo' },
+				body_required__putadmindebugtelnetcommand__command: 'status',
+				sendAdditionalHeaders: false,
+				responseFormat: 'auto',
+				returnFullResponse: false,
+			},
+			credentials,
+		);
+		const telnetCommandResult = await azuraCastNode.execute.call(telnetCommandContext);
+		assert.equal(telnetCommandResult[0][0].json.success, true);
+		assert.equal(telnetCommandResult[0][0].json.data.command, 'status');
+
+		const playlistOrderContext = createExecutionContext(
+			{
+				resource: getResource('putStationPlaylistOrder'),
+				operation: 'putStationPlaylistOrder',
+				path__putstationplaylistorder__station_id: { mode: 'list', value: 'demo' },
+				path__putstationplaylistorder__id: { mode: 'list', value: 11 },
+				body_required__putstationplaylistorder__order: [22, 11, 33],
+				sendAdditionalHeaders: false,
+				responseFormat: 'auto',
+				returnFullResponse: false,
+			},
+			credentials,
+		);
+		const playlistOrderResult = await azuraCastNode.execute.call(playlistOrderContext);
+		assert.equal(playlistOrderResult[0][0].json.success, true);
+		assert.equal(Array.isArray(playlistOrderResult[0][0].json.data), true);
+		assert.equal(playlistOrderResult[0][0].json.data.length, 3);
+
+		const batchActionContext = createExecutionContext(
+			{
+				resource: getResource('putStationFileBatchAction'),
+				operation: 'putStationFileBatchAction',
+				path__putstationfilebatchaction__station_id: { mode: 'list', value: 'demo' },
+				body_required__putstationfilebatchaction__do: 'move',
+				body_optional__putstationfilebatchaction: {
+					files: ['music/a.mp3'],
+					currentDirectory: 'music',
+					directory: 'archive',
+				},
+				sendAdditionalHeaders: false,
+				responseFormat: 'auto',
+				returnFullResponse: false,
+			},
+			credentials,
+		);
+		const batchActionResult = await azuraCastNode.execute.call(batchActionContext);
+		assert.equal(batchActionResult[0][0].json.success, true);
+		assert.equal(batchActionResult[0][0].json.data.action, 'move');
+
+		const runBackupContext = createExecutionContext(
+			{
+				resource: getResource('postAdminDoBackup'),
+				operation: 'postAdminDoBackup',
+				body_optional__postadmindobackup: {
+					storage_location: 3,
+					path: 'backups/manual.zip',
+					exclude_media: true,
+				},
+				sendAdditionalHeaders: false,
+				responseFormat: 'auto',
+				returnFullResponse: false,
+			},
+			credentials,
+		);
+		const runBackupResult = await azuraCastNode.execute.call(runBackupContext);
+		assert.equal(runBackupResult[0][0].json.success, true);
+		assert.equal(runBackupResult[0][0].json.data.storage_location, 3);
+
+		const saveWaveformContext = createExecutionContext(
+			{
+				resource: getResource('postStationMediaWaveform'),
+				operation: 'postStationMediaWaveform',
+				path__poststationmediawaveform__station_id: { mode: 'list', value: 'demo' },
+				path__poststationmediawaveform__id: { mode: 'list', value: 1 },
+				body_required__poststationmediawaveform__data: {
+					points: [0, 1, 0.5],
+				},
+				sendAdditionalHeaders: false,
+				responseFormat: 'auto',
+				returnFullResponse: false,
+			},
+			credentials,
+		);
+		const saveWaveformResult = await azuraCastNode.execute.call(saveWaveformContext);
+		assert.equal(saveWaveformResult[0][0].json.success, true);
+		assert.equal(saveWaveformResult[0][0].json.data.cached, true);
+
+		const putAccountTwoFactorContext = createExecutionContext(
+			{
+				resource: getResource('putAccountTwoFactor'),
+				operation: 'putAccountTwoFactor',
+				body_optional__putaccounttwofactor: {
+					secret: 'A'.repeat(64),
+					otp: '123456',
+				},
+				sendAdditionalHeaders: false,
+				responseFormat: 'auto',
+				returnFullResponse: false,
+			},
+			credentials,
+		);
+		const putAccountTwoFactorResult = await azuraCastNode.execute.call(putAccountTwoFactorContext);
+		assert.equal(putAccountTwoFactorResult[0][0].json.success, true);
+		assert.equal(putAccountTwoFactorResult[0][0].json.data.success, true);
+
+		const putAccountWebAuthnRegisterContext = createExecutionContext(
+			{
+				resource: getResource('putAccountWebAuthnRegister'),
+				operation: 'putAccountWebAuthnRegister',
+				body_required__putaccountwebauthnregister__createresponse: {
+					clientDataJSON: 'YWJj',
+					attestationObject: 'ZGVm',
+				},
+				body_optional__putaccountwebauthnregister: {
+					name: 'Main Passkey',
+				},
+				sendAdditionalHeaders: false,
+				responseFormat: 'auto',
+				returnFullResponse: false,
+			},
+			credentials,
+		);
+		const putAccountWebAuthnRegisterResult = await azuraCastNode.execute.call(
+			putAccountWebAuthnRegisterContext,
+		);
+		assert.equal(putAccountWebAuthnRegisterResult[0][0].json.success, true);
+		assert.equal(putAccountWebAuthnRegisterResult[0][0].json.data.success, true);
+
+		const putMeContext = createExecutionContext(
+			{
+				resource: getResource('putMe'),
+				operation: 'putMe',
+				body_json__putme: {
+					name: 'Node QA User',
+				},
+				sendAdditionalHeaders: false,
+				responseFormat: 'auto',
+				returnFullResponse: false,
+			},
+			credentials,
+		);
+		const putMeResult = await azuraCastNode.execute.call(putMeContext);
+		assert.equal(putMeResult[0][0].json.success, true);
+		assert.equal(putMeResult[0][0].json.data.updated, true);
+
+		const putStationLiquidsoapConfigContext = createExecutionContext(
+			{
+				resource: getResource('putStationLiquidsoapConfig'),
+				operation: 'putStationLiquidsoapConfig',
+				path__putstationliquidsoapconfig__station_id: { mode: 'list', value: 'demo' },
+				body_json__putstationliquidsoapconfig: {
+					custom_config: 'set("log.level",4)',
+				},
+				sendAdditionalHeaders: false,
+				responseFormat: 'auto',
+				returnFullResponse: false,
+			},
+			credentials,
+		);
+		const putStationLiquidsoapConfigResult = await azuraCastNode.execute.call(
+			putStationLiquidsoapConfigContext,
+		);
+		assert.equal(putStationLiquidsoapConfigResult[0][0].json.success, true);
+		assert.equal(putStationLiquidsoapConfigResult[0][0].json.data.updated, true);
+
+		const putStationPlaylistApplyToContext = createExecutionContext(
+			{
+				resource: getResource('putStationPlaylistApplyTo'),
+				operation: 'putStationPlaylistApplyTo',
+				path__putstationplaylistapplyto__station_id: { mode: 'list', value: 'demo' },
+				path__putstationplaylistapplyto__id: { mode: 'list', value: 11 },
+				body_optional__putstationplaylistapplyto: {
+					copyPlaylist: true,
+					directories: ['rock', 'pop'],
+				},
+				sendAdditionalHeaders: false,
+				responseFormat: 'auto',
+				returnFullResponse: false,
+			},
+			credentials,
+		);
+		const putStationPlaylistApplyToResult = await azuraCastNode.execute.call(
+			putStationPlaylistApplyToContext,
+		);
+		assert.equal(putStationPlaylistApplyToResult[0][0].json.success, true);
+		assert.equal(Array.isArray(putStationPlaylistApplyToResult[0][0].json.data.directories), true);
+		assert.equal(putStationPlaylistApplyToResult[0][0].json.data.directories.length, 2);
+
 		const deleteWebhookContext = createExecutionContext(
 			{
 				resource: getResource('deleteWebhook'),
@@ -657,6 +1121,103 @@ async function main() {
 		);
 		assert.ok(sendTestEmailRequest);
 		assert.equal(sendTestEmailRequest.body.email, 'ops@example.com');
+
+		const makeDirectoryRequest = [...mock.requests].reverse().find(
+			(request) => request.method === 'POST' && request.pathname === '/api/station/demo/files/mkdir',
+		);
+		assert.ok(makeDirectoryRequest);
+		assert.equal(makeDirectoryRequest.body.name, 'new-folder');
+
+		const renameFileRequest = [...mock.requests].reverse().find(
+			(request) => request.method === 'PUT' && request.pathname === '/api/station/demo/files/rename',
+		);
+		assert.ok(renameFileRequest);
+		assert.equal(renameFileRequest.body.file, 'music/old.mp3');
+		assert.equal(renameFileRequest.body.newPath, 'music/new.mp3');
+
+		const telnetCommandRequest = [...mock.requests].reverse().find(
+			(request) =>
+				request.method === 'PUT' &&
+				request.pathname === '/api/admin/debug/station/demo/telnet',
+		);
+		assert.ok(telnetCommandRequest);
+		assert.equal(telnetCommandRequest.body.command, 'status');
+
+		const playlistOrderRequest = [...mock.requests].reverse().find(
+			(request) => request.method === 'PUT' && request.pathname === '/api/station/demo/playlist/11/order',
+		);
+		assert.ok(playlistOrderRequest);
+		assert.equal(Array.isArray(playlistOrderRequest.body.order), true);
+		assert.equal(playlistOrderRequest.body.order[0], 22);
+
+		const batchActionRequest = [...mock.requests].reverse().find(
+			(request) => request.method === 'PUT' && request.pathname === '/api/station/demo/files/batch',
+		);
+		assert.ok(batchActionRequest);
+		assert.equal(batchActionRequest.body.do, 'move');
+
+		const runBackupRequest = [...mock.requests].reverse().find(
+			(request) => request.method === 'POST' && request.pathname === '/api/admin/backups/run',
+		);
+		assert.ok(runBackupRequest);
+		assert.equal(runBackupRequest.body.storage_location, 3);
+		assert.equal(runBackupRequest.body.exclude_media, true);
+
+		const saveWaveformRequest = [...mock.requests].reverse().find(
+			(request) => request.method === 'POST' && request.pathname === '/api/station/demo/waveform/1',
+		);
+		assert.ok(saveWaveformRequest);
+		assert.equal(Array.isArray(saveWaveformRequest.body.data.points), true);
+		assert.equal(saveWaveformRequest.body.data.points.length, 3);
+
+		const putAccountTwoFactorRequest = [...mock.requests].reverse().find(
+			(request) => request.method === 'PUT' && request.pathname === '/api/frontend/account/two-factor',
+		);
+		assert.ok(putAccountTwoFactorRequest);
+		assert.equal(String(putAccountTwoFactorRequest.body.secret).length, 64);
+		assert.equal(putAccountTwoFactorRequest.body.otp, '123456');
+
+		const putAccountWebAuthnRegisterRequest = [...mock.requests].reverse().find(
+			(request) =>
+				request.method === 'PUT' &&
+				request.pathname === '/api/frontend/account/webauthn/register',
+		);
+		assert.ok(putAccountWebAuthnRegisterRequest);
+		assert.equal(
+			putAccountWebAuthnRegisterRequest.body.createResponse.clientDataJSON,
+			'YWJj',
+		);
+		assert.equal(
+			putAccountWebAuthnRegisterRequest.body.createResponse.attestationObject,
+			'ZGVm',
+		);
+
+		const putMeRequest = [...mock.requests].reverse().find(
+			(request) => request.method === 'PUT' && request.pathname === '/api/frontend/account/me',
+		);
+		assert.ok(putMeRequest);
+		assert.equal(putMeRequest.body.name, 'Node QA User');
+
+		const putStationLiquidsoapConfigRequest = [...mock.requests].reverse().find(
+			(request) =>
+				request.method === 'PUT' &&
+				request.pathname === '/api/station/demo/liquidsoap-config',
+		);
+		assert.ok(putStationLiquidsoapConfigRequest);
+		assert.equal(
+			putStationLiquidsoapConfigRequest.body.custom_config,
+			'set("log.level",4)',
+		);
+
+		const putStationPlaylistApplyToRequest = [...mock.requests].reverse().find(
+			(request) =>
+				request.method === 'PUT' &&
+				request.pathname === '/api/station/demo/playlist/11/apply-to',
+		);
+		assert.ok(putStationPlaylistApplyToRequest);
+		assert.equal(putStationPlaylistApplyToRequest.body.copyPlaylist, true);
+		assert.equal(Array.isArray(putStationPlaylistApplyToRequest.body.directories), true);
+		assert.equal(putStationPlaylistApplyToRequest.body.directories[0], 'rock');
 
 		const multipartRequest = mock.requests.find(
 			(request) =>
