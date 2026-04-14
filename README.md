@@ -194,6 +194,12 @@ Versioning:
 
 ## Version history
 
+### 0.1.9
+
+- Wrapped runtime API failures in `NodeApiError` for clearer n8n error details in the UI
+- Updated grouped resource labels to singular display names aligned with n8n UX guidance
+- Expanded local verification to cover resource labels and thrown API error behavior
+
 ### 0.1.8
 
 - Added explicit body-field UX for AzuraCast actions with missing request schema in OpenAPI, including file management, backups, waveform cache, account security, and playlist apply actions

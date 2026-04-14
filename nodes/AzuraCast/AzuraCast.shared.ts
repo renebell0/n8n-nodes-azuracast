@@ -1,4 +1,5 @@
 import {
+	NodeApiError,
 	NodeOperationError,
 	type IBinaryData,
 	type IBinaryKeyData,
@@ -12,6 +13,7 @@ import {
 	type INodeListSearchResult,
 	type INodeProperties,
 	type INodePropertyOptions,
+	type JsonObject,
 } from 'n8n-workflow';
 import azuraCastOpenApiSnapshot from './azuracast.openapi.snapshot.json';
 
@@ -114,6 +116,35 @@ type LocatorConfig = {
 
 const rawSnapshot = azuraCastOpenApiSnapshot as AzuraCastSnapshotData;
 const credentialTypeName = 'renebelloAzuraCastApi';
+const resourceDisplayNameByTag: Record<string, string> = {
+	'Administration: Backups': 'Administration Backup',
+	'Administration: Custom Fields': 'Administration Custom Field',
+	'Administration: Debugging': 'Administration Debugging',
+	'Administration: General': 'Administration General',
+	'Administration: Roles': 'Administration Role',
+	'Administration: Settings': 'Administration Settings',
+	'Administration: Stations': 'Administration Station',
+	'Administration: Storage Locations': 'Administration Storage Location',
+	'Administration: Users': 'Administration User',
+	Miscellaneous: 'Miscellaneous',
+	'My Account': 'My Account',
+	'Public: Miscellaneous': 'Public Miscellaneous',
+	'Public: Now Playing': 'Public Now Playing',
+	'Public: Stations': 'Public Station',
+	'Stations: Broadcasting': 'Station Broadcasting',
+	'Stations: General': 'Station General',
+	'Stations: HLS Streams': 'Station HLS Stream',
+	'Stations: Media': 'Station Media',
+	'Stations: Mount Points': 'Station Mount Point',
+	'Stations: Playlists': 'Station Playlist',
+	'Stations: Podcasts': 'Station Podcast',
+	'Stations: Queue': 'Station Queue',
+	'Stations: Remote Relays': 'Station Remote Relay',
+	'Stations: Reports': 'Station Report',
+	'Stations: SFTP Users': 'Station SFTP User',
+	'Stations: Streamers/DJs': 'Station Streamer/DJ',
+	'Stations: Web Hooks': 'Station Web Hook',
+};
 
 const operationMetadataOverrides: Record<string, Partial<AzuraCastSnapshotOperation>> = {
 	adminSendTestEmail: {
@@ -498,6 +529,27 @@ function toJsonObject(value: unknown): IDataObject {
 		return value;
 	}
 	return { data: value as string | number | boolean | null };
+}
+
+function toNodeApiErrorBody(error: unknown): JsonObject {
+	if (error instanceof Error) {
+		const normalizedError: Record<string, unknown> = {
+			message: error.message || String(error),
+			name: error.name,
+		};
+		for (const [key, value] of Object.entries(error as unknown as Record<string, unknown>)) {
+			if (value !== undefined) {
+				normalizedError[key] = value;
+			}
+		}
+		return normalizedError as JsonObject;
+	}
+	if (isObject(error)) {
+		return error as unknown as JsonObject;
+	}
+	return {
+		message: String(error ?? 'Unknown error'),
+	} as JsonObject;
 }
 
 function toOutputJsonItems(value: unknown): IDataObject[] {
@@ -1030,6 +1082,10 @@ function toDisplayName(value: string): string {
 			return part.charAt(0).toUpperCase() + part.slice(1);
 		})
 		.join(' ');
+}
+
+function getResourceDisplayName(tag: string): string {
+	return resourceDisplayNameByTag[tag] ?? toDisplayName(tag.replace(/:/g, ' '));
 }
 
 function singularizeToken(token: string): string {
@@ -2081,7 +2137,7 @@ function getDomainOperations(tag: string) {
 }
 
 function buildOperationOptions(operations: AzuraCastSnapshotOperation[]) {
-	const resourceDisplayName = toDisplayName(String(operations[0]?.tag ?? 'General'));
+	const resourceDisplayName = getResourceDisplayName(String(operations[0]?.tag ?? 'General'));
 	const usedNames = new Set<string>();
 	const operationOptions = operations.map((operation) => {
 		const rawBaseName = toDisplayName(sanitizeUiLabel(getOperationBaseName(operation)));
@@ -2128,7 +2184,7 @@ function getUnifiedResources(): AzuraCastUnifiedResource[] {
 		return {
 			tag,
 			value: `resource_${sanitizeNameSegment(tag)}`,
-			displayName: toDisplayName(tag.replace(/:/g, ' ')),
+			displayName: getResourceDisplayName(tag),
 			operations,
 			operationOptions,
 		};
@@ -3518,7 +3574,12 @@ export async function executeDomainNode(
 				});
 				continue;
 			}
-			throw error;
+			if (error instanceof NodeApiError || error instanceof NodeOperationError) {
+				throw error;
+			}
+			throw new NodeApiError(this.getNode(), toNodeApiErrorBody(error), {
+				itemIndex: i,
+			});
 		}
 	}
 

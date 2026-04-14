@@ -1,8 +1,38 @@
+import assert from 'node:assert/strict';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
+const expectedResourceLabels = [
+	'Administration Backup',
+	'Administration Custom Field',
+	'Administration Debugging',
+	'Administration General',
+	'Administration Role',
+	'Administration Settings',
+	'Administration Station',
+	'Administration Storage Location',
+	'Administration User',
+	'Miscellaneous',
+	'My Account',
+	'Public Miscellaneous',
+	'Public Now Playing',
+	'Public Station',
+	'Station Broadcasting',
+	'Station General',
+	'Station HLS Stream',
+	'Station Media',
+	'Station Mount Point',
+	'Station Playlist',
+	'Station Podcast',
+	'Station Queue',
+	'Station Remote Relay',
+	'Station Report',
+	'Station SFTP User',
+	'Station Streamer/DJ',
+	'Station Web Hook',
+];
 
 function isPathLikeLabel(value) {
 	const normalized = String(value ?? '').trim();
@@ -35,6 +65,12 @@ async function main() {
 	if (!resourceProperty.options.some((option) => String(option?.value ?? '').trim() === resourceDefault)) {
 		throw new Error(`Resource selector default "${resourceDefault}" does not match available options.`);
 	}
+	const actualResourceLabels = resourceProperty.options.map((option) => String(option?.name ?? '').trim());
+	assert.deepEqual(
+		actualResourceLabels,
+		expectedResourceLabels,
+		`Resource selector labels do not match expected singular labels.\nExpected: ${expectedResourceLabels.join(', ')}\nActual: ${actualResourceLabels.join(', ')}`,
+	);
 
 	const operationProperties = properties.filter((property) => property?.name === 'operation');
 	if (operationProperties.length !== resourceProperty.options.length) {

@@ -1,11 +1,14 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import http from 'node:http';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
+const require = createRequire(import.meta.url);
+const { NodeApiError } = require('n8n-workflow');
 
 function parseBody(buffer, contentType) {
 	const bodyText = buffer.toString('utf8');
@@ -111,6 +114,15 @@ async function startMockServer() {
 					res.end(
 						JSON.stringify({
 							error: 'Email "" does not comply with addr-spec of RFC 2822.',
+						}),
+					);
+					return;
+				}
+				if (!/.+@.+\..+/.test(emailAddress)) {
+					res.writeHead(400, { 'content-type': 'application/json' });
+					res.end(
+						JSON.stringify({
+							error: 'Email address is invalid.',
 						}),
 					);
 					return;
@@ -815,6 +827,26 @@ async function main() {
 		assert.equal(sendTestEmailResult[0][0].json.success, true);
 		assert.equal(sendTestEmailResult[0][0].json.data.success, true);
 
+		const invalidSendTestEmailContext = createExecutionContext(
+			{
+				resource: getResource('adminSendTestEmail'),
+				operation: 'adminSendTestEmail',
+				body_required__adminsendtestemail__email: 'invalid-email',
+				sendAdditionalHeaders: false,
+				responseFormat: 'auto',
+				returnFullResponse: false,
+			},
+			credentials,
+		);
+		await assert.rejects(
+			async () => azuraCastNode.execute.call(invalidSendTestEmailContext),
+			(error) => {
+				assert.equal(error instanceof NodeApiError, true);
+				assert.match(String(error.message ?? ''), /request|email|invalid|400/i);
+				return true;
+			},
+		);
+
 		const makeDirectoryContext = createExecutionContext(
 			{
 				resource: getResource('postStationFilesMkdir'),
@@ -1117,10 +1149,22 @@ async function main() {
 		assert.equal(webhookRequest.headers['x-api-key'], 'test-key');
 
 		const sendTestEmailRequest = [...mock.requests].reverse().find(
-			(request) => request.method === 'POST' && request.pathname === '/api/admin/send-test-message',
+			(request) =>
+				request.method === 'POST' &&
+				request.pathname === '/api/admin/send-test-message' &&
+				request.body?.email === 'ops@example.com',
 		);
 		assert.ok(sendTestEmailRequest);
 		assert.equal(sendTestEmailRequest.body.email, 'ops@example.com');
+
+		const invalidSendTestEmailRequest = [...mock.requests].reverse().find(
+			(request) =>
+				request.method === 'POST' &&
+				request.pathname === '/api/admin/send-test-message' &&
+				request.body?.email === 'invalid-email',
+		);
+		assert.ok(invalidSendTestEmailRequest);
+		assert.equal(invalidSendTestEmailRequest.body.email, 'invalid-email');
 
 		const makeDirectoryRequest = [...mock.requests].reverse().find(
 			(request) => request.method === 'POST' && request.pathname === '/api/station/demo/files/mkdir',

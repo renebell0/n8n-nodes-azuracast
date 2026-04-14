@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-04-14
+
+- Wrapped runtime HTTP/API failures in `NodeApiError` so n8n can render structured error details
+- Preserved existing `NodeOperationError` and `NodeApiError` instances without double-wrapping
+- Switched grouped resource labels to explicit singular display names aligned with n8n node UI guidance
+- Added UI verification for exact resource labels and local simulation coverage for thrown `NodeApiError` behavior
+
 ## [0.1.8] - 2026-03-22
 
 - Added runtime metadata overrides for AzuraCast actions missing request body schema in OpenAPI
