@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.10] - 2026-04-17
+
+- Updated the node subtitle to show both action and resource in the n8n editor
+- Sorted all action selectors by visible label instead of internal operation ID
+- Sorted optional query, body, and multipart collections alphabetically by visible field label
+- Updated all Resource Locator fields to the `Name or ID` pattern with list-first guidance and improved placeholders
+- Refined advanced request and response option descriptions to better match n8n UI guidance
+- Expanded UI verification to cover subtitle behavior, action ordering, optional field ordering, and Resource Locator metadata
+
 ## [0.1.9] - 2026-04-14
 
 - Wrapped runtime HTTP/API failures in `NodeApiError` so n8n can render structured error details

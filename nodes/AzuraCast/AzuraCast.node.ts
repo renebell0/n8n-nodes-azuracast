@@ -19,7 +19,7 @@ export class AzuraCast implements INodeType {
 		icon: { light: 'file:azuracast.svg', dark: 'file:azuracast.dark.svg' },
 		group: ['transform'],
 		version: 1,
-		subtitle: '={{$parameter["operation"]}}',
+		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
 		description: 'Interact with AzuraCast Web API',
 		defaults: {
 			name: 'AzuraCast',

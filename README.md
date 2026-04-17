@@ -194,6 +194,14 @@ Versioning:
 
 ## Version history
 
+### 0.1.10
+
+- Updated the node subtitle to show both action and resource in the n8n editor
+- Sorted action dropdowns by visible label across all AzuraCast resources
+- Sorted optional parameter collections alphabetically for cleaner field discovery
+- Updated all Resource Locator labels to the `Name or ID` pattern with clearer list/manual ID guidance
+- Refined advanced request and response option descriptions without changing execution behavior
+
 ### 0.1.9
 
 - Wrapped runtime API failures in `NodeApiError` for clearer n8n error details in the UI

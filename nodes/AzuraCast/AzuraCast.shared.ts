@@ -86,6 +86,8 @@ type FullHttpResponse = {
 	statusMessage?: string;
 };
 
+type HttpRequestBody = IHttpRequestOptions['body'];
+
 type LocatorEntityType =
 	| 'adminStation'
 	| 'customField'
@@ -719,12 +721,12 @@ async function buildBody(
 	binaryBodyProperty: string,
 	multipartFileFieldName: string,
 	multipartFields: IDataObject,
-): Promise<unknown> {
+): Promise<HttpRequestBody | undefined> {
 	if (bodyMode === 'none') {
 		return undefined;
 	}
 	if (bodyMode === 'json') {
-		return parseJsonValue(this.getNode(), jsonBody, 'jsonBody', itemIndex);
+		return parseJsonValue(this.getNode(), jsonBody, 'jsonBody', itemIndex) as HttpRequestBody;
 	}
 	if (bodyMode === 'raw') {
 		return rawBody;
@@ -1086,6 +1088,55 @@ function toDisplayName(value: string): string {
 
 function getResourceDisplayName(tag: string): string {
 	return resourceDisplayNameByTag[tag] ?? toDisplayName(tag.replace(/:/g, ' '));
+}
+
+function compareNodeOptionNames(
+	a: Pick<INodePropertyOptions, 'name'>,
+	b: Pick<INodePropertyOptions, 'name'>,
+): number {
+	return String(a.name ?? '').localeCompare(String(b.name ?? ''));
+}
+
+function sortFieldDefinitionsByDisplayName(
+	fieldDefinitions: AzuraCastSnapshotFieldDefinition[],
+): AzuraCastSnapshotFieldDefinition[] {
+	return [...fieldDefinitions].sort((a, b) =>
+		toDisplayName(String(a.name ?? '')).localeCompare(toDisplayName(String(b.name ?? ''))),
+	);
+}
+
+function getIndefiniteArticle(value: string): 'a' | 'an' {
+	const normalized = value.trim().toLowerCase();
+	if (!normalized) {
+		return 'a';
+	}
+	if (
+		/^(episode|sftp|hls)/.test(normalized) ||
+		/^[aeiou]/.test(normalized)
+	) {
+		return 'an';
+	}
+	return 'a';
+}
+
+function getLocatorDisplayName(displayName: string): string {
+	return `${displayName} Name or ID`;
+}
+
+function buildLocatorDescription(
+	fieldDefinition: AzuraCastSnapshotFieldDefinition,
+	locationLabel: string,
+	locatorConfig: LocatorConfig,
+): string {
+	const parts = [
+		`Identifies the ${locatorConfig.displayName.toLowerCase()} for this action.`,
+		locationLabel,
+	];
+	if (fieldDefinition.format.trim()) {
+		parts.push(`Format: ${fieldDefinition.format}`);
+	}
+	parts.push('Choose a name from the list, or specify an ID using an expression.');
+	return parts.join(' ');
 }
 
 function singularizeToken(token: string): string {
@@ -1602,8 +1653,10 @@ function createResourceLocatorPathProperty(
 	locationLabel: string,
 	locatorConfig: LocatorConfig,
 ): INodeProperties {
+	const locatorDisplayName = getLocatorDisplayName(locatorConfig.displayName);
+	const article = getIndefiniteArticle(locatorConfig.displayName);
 	return {
-		displayName: locatorConfig.displayName,
+		displayName: locatorDisplayName,
 		name: propertyName,
 		type: 'resourceLocator',
 		default: {
@@ -1611,14 +1664,14 @@ function createResourceLocatorPathProperty(
 			value: '',
 		},
 		required: true,
-		description: buildFieldDescription(fieldDefinition, locationLabel),
+		description: buildLocatorDescription(fieldDefinition, locationLabel, locatorConfig),
 		displayOptions,
 		modes: [
 			{
-				displayName: locatorConfig.displayName,
+				displayName: 'From List',
 				name: 'list',
 				type: 'list',
-				placeholder: `Select a ${locatorConfig.displayName.toLowerCase()}...`,
+				placeholder: `Choose ${article} ${locatorConfig.displayName.toLowerCase()}...`,
 				typeOptions: {
 					searchListMethod: locatorConfig.searchMethod,
 					searchable: true,
@@ -1710,6 +1763,7 @@ function createOptionalCollectionProperty(
 	displayOptions: INodeProperties['displayOptions'],
 	locationLabel: string,
 ): INodeProperties {
+	const sortedFieldDefinitions = sortFieldDefinitionsByDisplayName(fieldDefinitions);
 	const scopeLabel =
 		displayName === 'Optional Query Parameters'
 			? 'Add one or more optional query parameters for this action'
@@ -1724,7 +1778,7 @@ function createOptionalCollectionProperty(
 		placeholder: `Add ${displayName}`,
 		description: `${scopeLabel} (${locationLabel})`,
 		displayOptions,
-		options: fieldDefinitions.map((fieldDefinition) =>
+		options: sortedFieldDefinitions.map((fieldDefinition) =>
 			createOptionalCollectionField(fieldDefinition, locationLabel),
 		),
 	};
@@ -1921,7 +1975,7 @@ function appendSharedAdvancedProperties(properties: INodeProperties[]) {
 			],
 			default: 'auto',
 			description:
-				'Use Auto for operation-based fields. Override only when the API endpoint requires manual body handling.',
+				'Auto uses the built-in fields for this action. Override only when you need to send the request body manually.',
 		},
 		{
 			displayName: 'Manual JSON Body',
@@ -1998,7 +2052,7 @@ function appendSharedAdvancedProperties(properties: INodeProperties[]) {
 				{ name: 'Text', value: 'text' },
 			],
 			default: 'auto',
-			description: 'How to parse the response payload returned by AzuraCast',
+			description: 'Choose how n8n should parse the response returned by AzuraCast',
 		},
 		{
 			displayName: 'Output Data Field Name',
@@ -2017,7 +2071,7 @@ function appendSharedAdvancedProperties(properties: INodeProperties[]) {
 			name: 'returnFullResponse',
 			type: 'boolean',
 			default: false,
-			description: 'Whether to include status code and headers together with the response body',
+			description: 'Whether to return the full HTTP response, including headers and status code',
 		},
 		{
 			displayName: 'Wrap Response Data',
@@ -2025,7 +2079,7 @@ function appendSharedAdvancedProperties(properties: INodeProperties[]) {
 			type: 'boolean',
 			default: true,
 			description:
-				'Whether to return a single item as {success, data}. Disable to split array responses into multiple items.',
+				'Whether to keep the response body in a single output item. Disable to split array responses into multiple items.',
 			displayOptions: {
 				hide: {
 					returnFullResponse: [true],
@@ -2161,6 +2215,7 @@ function buildOperationOptions(operations: AzuraCastSnapshotOperation[]) {
 			description: description || operation.tag,
 		};
 	});
+	operationOptions.sort(compareNodeOptionNames);
 	const defaultOperationId = operationOptions[0].value;
 	return {
 		operationOptions: operationOptions as INodePropertyOptions[],
@@ -2177,8 +2232,7 @@ function getUnifiedResources(): AzuraCastUnifiedResource[] {
 		grouped.set(tag, operationsForTag);
 	}
 
-	const orderedTags = [...grouped.keys()].sort((a, b) => a.localeCompare(b));
-	return orderedTags.map((tag) => {
+	const resources = [...grouped.keys()].map((tag) => {
 		const operations = (grouped.get(tag) ?? []).sort((a, b) => a.id.localeCompare(b.id));
 		const { operationOptions } = buildOperationOptions(operations);
 		return {
@@ -2189,6 +2243,7 @@ function getUnifiedResources(): AzuraCastUnifiedResource[] {
 			operationOptions,
 		};
 	});
+	return resources.sort((a, b) => a.displayName.localeCompare(b.displayName));
 }
 
 export function createDomainOperationConfig(tag: string) {
@@ -2655,7 +2710,7 @@ async function collectAutoRequestBody(
 	this: IExecuteFunctions,
 	operation: AzuraCastSnapshotOperation,
 	itemIndex: number,
-): Promise<unknown> {
+): Promise<HttpRequestBody | undefined> {
 	const fieldDefinitions = getRequestBodyFieldDefinitions(operation);
 	const multipartOperation = isMultipartOperation(operation);
 	const binaryFieldDefinition = multipartOperation
@@ -2675,7 +2730,7 @@ async function collectAutoRequestBody(
 		if (isValueMissing(rawJsonBody)) {
 			return undefined;
 		}
-		return parseJsonValue(this.getNode(), rawJsonBody, jsonParameterName, itemIndex);
+		return parseJsonValue(this.getNode(), rawJsonBody, jsonParameterName, itemIndex) as HttpRequestBody;
 	}
 
 	const body: IDataObject = {};
@@ -2791,7 +2846,7 @@ async function collectAutoRequestBody(
 async function collectLegacyRequestBody(
 	this: IExecuteFunctions,
 	itemIndex: number,
-): Promise<unknown> {
+): Promise<HttpRequestBody | undefined> {
 	const legacyBodyMode = this.getNodeParameter('bodyMode', itemIndex, 'none') as BodyMode;
 	if (legacyBodyMode === 'none') {
 		return undefined;
@@ -2830,7 +2885,7 @@ async function collectManualOverrideRequestBody(
 	this: IExecuteFunctions,
 	itemIndex: number,
 	bodyModeOverride: BodyMode,
-): Promise<unknown> {
+): Promise<HttpRequestBody | undefined> {
 	if (bodyModeOverride === 'none') {
 		return undefined;
 	}
@@ -3389,7 +3444,7 @@ export async function executeDomainNode(
 				: undefined;
 
 			const bodyModeOverride = this.getNodeParameter('bodyModeOverride', i, 'auto') as BodyModeOverride;
-			let requestBody: unknown;
+			let requestBody: HttpRequestBody | undefined;
 			if (bodyModeOverride === 'auto') {
 				const legacyBodyMode = this.getNodeParameter('bodyMode', i, 'none') as BodyMode;
 				const legacyJsonBody = this.getNodeParameter('jsonBody', i, '');
@@ -3429,7 +3484,7 @@ export async function executeDomainNode(
 			}
 
 			if (requestBody !== undefined) {
-				requestOptions.body = requestBody as IDataObject;
+				requestOptions.body = requestBody;
 			}
 
 			if (responseFormat === 'binary') {
